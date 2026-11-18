@@ -1,0 +1,15 @@
+@{ ViewData["Title"] = "Reports"; }
+<div class="page-title"><h3>Reports</h3></div>
+<p class="text-muted">All reports can be printed or exported to CSV (opens in Excel). Fixed formats are intentionally limited - the report engine filters by date, branch and a free parameter.</p>
+<div class="row g-3">
+@{
+    var groups = new (string Title, (string Text, string Action)[] Items)[] {
+        ("General ledger & finance", new[] { ("Trial balance", "TrialBalance"), ("General ledger statement", "GlStatement"), ("Day book", "DayBook"), ("Balance sheet", "BalanceSheet"), ("Income statement", "IncomeStatement"), ("Inter-branch reconciliation", "InterBranch") }),
+        ("Deposits", new[] { ("Deposit portfolio", "Deposits"), ("Dormant / inoperative accounts", "Dormant"), ("FDR / DPS maturity schedule", "Maturity"), ("Interest rates in force", "Rates"), ("Cheque return & stop-payment register", "Cheques") }),
+        ("Loans", new[] { ("Loan portfolio, classification & provision", "LoanPortfolio") }),
+        ("Control & compliance", new[] { ("Unauthorized / rejected transactions", "Unauthorized"), ("Cash Transaction Report (CTR)", "Ctr"), ("User-wise activity", "UserActivity") }),
+    };
+}
+@foreach (var g in groups) { <div class="col-md-6 col-xl-3"><div class="panel h-100"><h5>@g.Title</h5><ul class="list-unstyled mb-0">@foreach (var i in g.Items) { <li class="mb-1"><a asp-action="@i.Action">@i.Text</a></li> }</ul></div></div> }
+<div class="col-md-6 col-xl-3"><div class="panel h-100"><h5>Statements & registers</h5><ul class="list-unstyled mb-0"><li><a asp-controller="Accounts" asp-action="Index">Account statement (open an account)</a></li><li><a asp-controller="Transactions" asp-action="Register">Voucher register</a></li><li><a asp-controller="StandingInstructions" asp-action="Index">Standing instruction register</a></li><li><a asp-controller="Remittance" asp-action="Index">PO / DD / TT register</a></li><li><a asp-controller="Users" asp-action="Audit">Audit trail</a></li></ul></div></div>
+</div>

@@ -1,0 +1,6 @@
+@model List<(GlAccount g, int depth)>
+@{ ViewData["Title"] = "Chart of accounts"; }
+<div class="page-title"><h3>Chart of accounts <small class="text-muted">(tree)</small></h3><a class="btn btn-primary" asp-action="GlEdit">+ New GL</a></div>
+<div class="panel"><table class="table table-sm table-hover"><thead><tr><th>Code</th><th>Name</th><th>Type</th><th>Posting</th><th>Status</th><th></th></tr></thead><tbody>
+@foreach (var (g, d) in Model) { <tr><td class="tree-@d">@g.Code</td><td class="tree-@d">@g.Name</td><td>@g.Type</td><td>@(g.IsPosting ? "Yes" : "Group")</td><td>@(g.IsActive ? "Active" : "Inactive")</td><td><a asp-action="GlEdit" asp-route-id="@g.Id">Edit</a></td></tr> }
+</tbody></table></div>

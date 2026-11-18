@@ -1,0 +1,18 @@
+@model List<SanctionEntry>
+@{ ViewData["Title"] = "Sanction screening"; }
+<div class="page-title"><h3>UNSCR &amp; local sanction list</h3></div>
+<div class="row g-3"><div class="col-lg-4">
+<div class="panel"><h5>Screen names / IDs</h5><form method="post" asp-action="Check"><textarea name="names" class="form-control mb-2" rows="4" placeholder="One name or ID per line"></textarea><button class="btn btn-warning">Screen</button></form>
+<p class="small text-muted mt-2 mb-0">Screening is also applied automatically on customer creation, account opening (joint holders, nominees, attorney, introducer), loans, cash depositor/withdrawer, transfers and remittance beneficiaries.</p></div>
+@if (User.IsInRole("Administrator") || User.IsInRole("Manager") || User.IsInRole("Supervisor")) {
+<div class="panel"><h5>Add list entry</h5><form method="post" asp-action="Add" class="row g-2">
+<div class="col-12"><select name="Source" class="form-select"><option value="1">UNSCR</option><option value="2">Local sanction</option></select></div>
+<div class="col-12"><input name="Name" class="form-control" placeholder="Name" required /></div>
+<div class="col-12"><input name="Aliases" class="form-control" placeholder="Aliases (separate with ;)" /></div>
+<div class="col-12"><input name="IdNumber" class="form-control" placeholder="NID / passport / ID no" /></div>
+<div class="col-12"><input name="Notes" class="form-control" placeholder="Notes / reference" /></div>
+<div class="col-12"><button class="btn btn-primary">Add</button></div></form></div> }
+</div><div class="col-lg-8"><div class="panel"><table class="table table-sm"><thead><tr><th>Source</th><th>Name</th><th>Aliases</th><th>ID</th><th>Notes</th><th>Status</th><th></th></tr></thead><tbody>
+@foreach (var s in Model) { <tr><td>@s.Source</td><td>@s.Name</td><td>@s.Aliases</td><td>@s.IdNumber</td><td>@s.Notes</td><td>@(s.IsActive ? "Active" : "Inactive")</td><td>@if (User.IsInRole("Administrator") || User.IsInRole("Manager") || User.IsInRole("Supervisor")) {<form method="post" asp-action="Toggle"><input type="hidden" name="id" value="@s.Id" /><button class="btn btn-sm btn-outline-secondary">Toggle</button></form>}</td></tr> }
+@if (Model.Count == 0) { <tr><td colspan="7" class="text-muted">The list is empty. Import/enter UNSCR and local sanction entries here.</td></tr> }
+</tbody></table></div></div></div>

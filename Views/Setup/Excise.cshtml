@@ -1,0 +1,8 @@
+@model List<ExciseSlab>
+@{ ViewData["Title"] = "Excise duty"; }
+<div class="page-title"><h3>Excise duty slabs</h3></div>
+<div class="panel"><div class="alert alert-info">Charged on deposit account balances at financial year-end EOD. The seeded values are illustrative - please set them according to the current NBR schedule.</div>
+<form method="post" asp-action="AddExcise" class="row g-2 mb-3"><div class="col-md-3"><input name="MinBalance" type="number" step="0.01" class="form-control" placeholder="Balance from" required /></div><div class="col-md-3"><input name="MaxBalance" type="number" step="0.01" class="form-control" placeholder="Balance to (0 = no limit)" value="0" /></div><div class="col-md-3"><input name="Duty" type="number" step="0.01" class="form-control" placeholder="Duty" required /></div><div class="col-md-2"><button class="btn btn-primary">Add slab</button></div></form>
+<table class="table table-sm"><thead><tr><th class="num">From</th><th class="num">To</th><th class="num">Duty</th><th></th></tr></thead><tbody>
+@foreach (var s in Model) { <tr><td class="num">@s.MinBalance.ToString("N2")</td><td class="num">@(s.MaxBalance == 0 ? "no limit" : s.MaxBalance.ToString("N2"))</td><td class="num">@s.Duty.ToString("N2")</td><td><form method="post" asp-action="DeleteExcise"><input type="hidden" name="id" value="@s.Id" /><button class="btn btn-sm btn-outline-danger">Delete</button></form></td></tr> }
+</tbody></table></div>

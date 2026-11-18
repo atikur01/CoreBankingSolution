@@ -1,0 +1,13 @@
+@model CashTxnVm
+@{ ViewData["Title"] = Model.Title; bool wd = Model.Action == "Withdraw"; }
+<div class="page-title"><h3>@Model.Title</h3></div>
+<form method="post" asp-action="@Model.Action" class="panel" style="max-width:820px"><div asp-validation-summary="All" class="text-danger"></div><div class="row g-3">
+    <input type="hidden" asp-for="Title" /><input type="hidden" asp-for="Action" />
+    <div class="col-md-6"><label class="form-label" asp-for="AccountNo"></label><input class="form-control" asp-for="AccountNo" data-account-lookup="#acInfo" autocomplete="off" /><div id="acInfo" class="form-text"></div></div>
+    @Html.Field(m => m.Amount, 3)
+    @Html.Field(m => m.ValueDate, 3)
+    @Html.Field(m => m.PartyName, 6, hint: "Screened against the UNSCR / local sanction list")
+    @if (wd) { @Html.Field(m => m.ChequeNo, 3) }
+    @Html.Field(m => m.Narration, wd ? 3 : 6)
+</div><div class="mt-3"><button class="btn btn-primary">Create voucher</button></div>
+<p class="text-muted small mt-3 mb-0">The voucher is posted only after a different user (checker) authorizes it. Amounts ≥ the Level-2 limit, and back-valued entries, need Manager-level authorization.</p></form>

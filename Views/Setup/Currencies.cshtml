@@ -1,0 +1,9 @@
+@model List<Currency>
+@{ ViewData["Title"] = "Currencies"; var rates = (List<ExchangeRate>)ViewBag.Rates; }
+<div class="page-title"><h3>Currencies &amp; spot rates</h3></div>
+<div class="row g-3"><div class="col-lg-5"><div class="panel"><h5>Currencies</h5>
+<table class="table table-sm"><thead><tr><th>Code</th><th>Name</th><th>Base</th></tr></thead><tbody>@foreach (var c in Model) { <tr><td>@c.Code</td><td>@c.Name @c.Symbol</td><td>@(c.IsBase ? "✔" : "")</td></tr> }</tbody></table>
+<form method="post" asp-action="AddCurrency" class="row g-2"><div class="col-3"><input name="Code" class="form-control" placeholder="CODE" maxlength="3" /></div><div class="col-5"><input name="Name" class="form-control" placeholder="Name" /></div><div class="col-2"><input name="Symbol" class="form-control" placeholder="Sym" /></div><div class="col-2"><button class="btn btn-primary w-100">Add</button></div></form></div></div>
+<div class="col-lg-7"><div class="panel"><h5>Spot rates (maintain daily)</h5>
+<form method="post" asp-action="AddFx" class="row g-2 mb-3"><div class="col-3"><select name="CurrencyId" class="form-select" asp-items="(SelectList)ViewBag.CurList"></select></div><div class="col-3"><input type="date" name="RateDate" class="form-control" value="@DateTime.Today.ToString("yyyy-MM-dd")" /></div><div class="col-2"><input name="BuyRate" type="number" step="0.000001" class="form-control" placeholder="Buy" /></div><div class="col-2"><input name="SellRate" type="number" step="0.000001" class="form-control" placeholder="Sell" /></div><div class="col-2"><button class="btn btn-primary w-100">Save</button></div></form>
+<table class="table table-sm"><thead><tr><th>Date</th><th>Currency</th><th class="num">Buy</th><th class="num">Sell</th></tr></thead><tbody>@foreach (var r in rates) { <tr><td>@r.RateDate.ToString("dd-MMM-yyyy")</td><td>@r.Currency?.Code</td><td class="num">@r.BuyRate</td><td class="num">@r.SellRate</td></tr> }</tbody></table></div></div></div>

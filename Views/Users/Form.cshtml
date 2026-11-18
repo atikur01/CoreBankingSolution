@@ -1,0 +1,17 @@
+@model UserVm
+@{ ViewData["Title"] = "User"; bool isNew = Model.Id == null; }
+<div class="page-title"><h3>@(isNew ? "New user" : "Edit user " + Model.UserName)</h3></div>
+<form method="post" class="panel"><div asp-validation-summary="All" class="text-danger"></div><div class="row g-3">
+ @if (!isNew) { @Html.Field(m => m.UserName, 3, readOnly: true) }
+ @Html.Field(m => m.Email, 3)
+ @Html.Field(m => m.FullName, 3)
+ @Html.Field(m => m.EmployeeId, 3)
+ @Html.Select(m => m.Role, Roles.All.Select(r => new SelectListItem(r, r)), 3)
+ @Html.Select(m => m.BranchId, (SelectList)ViewBag.Branches, 3)
+ @Html.Field(m => m.Designation, 3)
+ @Html.Field(m => m.PrimeMenu, 3)
+ @Html.Field(m => m.MaxDebit, 3) @Html.Field(m => m.MaxCredit, 3) @Html.Field(m => m.MaxInterBranchDebit, 3) @Html.Field(m => m.MaxInterBranchCredit, 3)
+ @Html.Field(m => m.AllowedIp, 4) @Html.Field(m => m.WorkFrom, 2) @Html.Field(m => m.WorkTo, 2)
+ @if (!isNew) { @Html.Field(m => m.IsActive, 2) }
+</div>@if (isNew) { <p class="small text-muted mt-3">A random temporary password is generated and shown once; the user must change it at first login (password history of 4 and 30-day expiry apply).</p> }
+<div class="mt-3"><button class="btn btn-primary">Save</button> <a class="btn btn-light" asp-action="Index">Cancel</a></div></form>

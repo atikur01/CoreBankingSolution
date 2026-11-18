@@ -74,3 +74,7 @@ ehthumbs.db
 Desktop.ini
 $RECYCLE.BIN/
 .DS_Store
+
+# Uploaded KYC documents (photos, signatures, NID copies)
+App_Data/
+*.db

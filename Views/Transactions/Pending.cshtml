@@ -1,0 +1,9 @@
+@model List<Voucher>
+@{ ViewData["Title"] = "Authorization queue"; }
+<div class="page-title"><h3>Authorization queue</h3></div>
+<div class="panel"><form class="row g-2 mb-3"><div class="col-md-4"><select name="branchId" class="form-select" asp-items="(SelectList)ViewBag.Branches"><option value="">All branches</option></select></div><div class="col-md-2"><button class="btn btn-outline-primary">Filter</button></div></form>
+<table class="table table-sm table-hover"><thead><tr><th>Voucher</th><th>Branch</th><th>Date</th><th>Type</th><th>Description</th><th class="num">Amount</th><th>Maker</th><th>Level</th><th style="width:260px"></th></tr></thead><tbody>
+@foreach (var v in Model) { <tr><td><a asp-action="Details" asp-route-id="@v.Id">@v.VoucherNo</a></td><td>@v.Branch?.Code</td><td>@v.TxnDate.ToString("dd-MMM-yy")@(v.IsBackValue ? " (back-value " + v.ValueDate.ToString("dd-MMM") + ")" : "")</td><td>@v.Type</td><td>@v.Description</td><td class="num">@v.TotalAmount.ToString("N2")</td><td>@v.MakerId</td><td>@(v.RequiredLevel == 2 ? "Manager" : "Supervisor")</td>
+ <td><form method="post" class="d-flex gap-1"><input type="hidden" name="id" value="@v.Id" /><button asp-action="Authorize" class="btn btn-sm btn-success">Authorize</button><input name="reason" class="form-control form-control-sm" placeholder="Reject reason" /><button asp-action="Reject" class="btn btn-sm btn-outline-danger">Reject</button></form></td></tr> }
+@if (Model.Count == 0) { <tr><td colspan="9" class="text-muted">Nothing is waiting for authorization.</td></tr> }
+</tbody></table></div>

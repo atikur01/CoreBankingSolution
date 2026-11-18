@@ -1,0 +1,10 @@
+@model RemittanceInput
+@{ ViewData["Title"] = "Issue instrument"; }
+<div class="page-title"><h3>Issue PO / DD / TT</h3></div>
+<form method="post" class="panel"><div class="row g-3">
+ @Html.Field(m => m.Type, 3)
+ @Html.Field(m => m.Amount, 3)
+ <div class="col-md-6"><label class="form-label">Debit account no (blank = cash from applicant)</label><input name="sourceAccountNo" class="form-control" value="@ViewBag.Src" data-account-lookup="#sInfo" /><div id="sInfo" class="form-text"></div></div>
+ @Html.Field(m => m.ApplicantName, 4) @Html.Field(m => m.BeneficiaryName, 4) @Html.Field(m => m.BeneficiaryAccountNo, 4)
+ @Html.Field(m => m.BeneficiaryBank, 4) @Html.Field(m => m.BeneficiaryBranch, 4)
+</div><p class="small text-muted mt-3">Commission (+VAT) is added automatically from bank parameters. Applicant and beneficiary are screened against sanction lists.</p><button class="btn btn-primary">Issue</button> <a class="btn btn-light" asp-action="Index">Cancel</a></form>

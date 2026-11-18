@@ -1,0 +1,12 @@
+@model StatementVm
+@{ ViewData["Title"] = "Statement"; var a = Model.Account; decimal opening = ViewBag.Opening; }
+<div class="page-title no-print"><h3>Account statement</h3><div><a class="btn btn-outline-secondary" href="javascript:window.print()">Print</a>
+ <a class="btn btn-outline-success" asp-action="Statement" asp-route-id="@a.Id" asp-route-from="@(((DateTime)ViewBag.From).ToString("yyyy-MM-dd"))" asp-route-to="@(((DateTime)ViewBag.To).ToString("yyyy-MM-dd"))" asp-route-csv="true">CSV</a>
+ <a class="btn btn-light" asp-action="Details" asp-route-id="@a.Id">Back</a></div></div>
+<form class="row g-2 mb-3 no-print"><input type="hidden" name="id" value="@a.Id" /><div class="col-md-3"><input type="date" name="from" class="form-control" value="@(((DateTime)ViewBag.From).ToString("yyyy-MM-dd"))" /></div><div class="col-md-3"><input type="date" name="to" class="form-control" value="@(((DateTime)ViewBag.To).ToString("yyyy-MM-dd"))" /></div><div class="col-md-2"><button class="btn btn-primary">Show</button></div></form>
+<div class="panel"><div class="row"><div class="col-md-6"><h5 class="mb-1">@a.Title</h5><div>Account: <b>@a.AccountNo</b> · @a.Product?.Name</div><div>CIF: @a.Customer?.CifNo · Branch: @a.Branch?.Name</div></div>
+<div class="col-md-6 text-md-end"><div>Period: @(((DateTime)ViewBag.From).ToString("dd-MMM-yyyy")) to @(((DateTime)ViewBag.To).ToString("dd-MMM-yyyy"))</div><div>Opening balance: <b>@opening.ToString("N2")</b></div><div>Closing balance: <b>@((Model.Rows.Count > 0 ? Model.Rows.Last().RunningBalance : opening).ToString("N2"))</b></div></div></div>
+<table class="table table-sm mt-3"><thead><tr><th>Date</th><th>Value</th><th>Voucher</th><th>Narration</th><th>Cheque</th><th class="num">Debit</th><th class="num">Credit</th><th class="num">Balance</th></tr></thead><tbody>
+@foreach (var r in Model.Rows) { <tr><td>@r.TxnDate.ToString("dd-MMM-yy")</td><td>@r.ValueDate.ToString("dd-MMM-yy")</td><td>@r.Voucher?.VoucherNo</td><td>@r.Narration</td><td>@r.ChequeNo</td><td class="num">@(r.Debit == 0 ? "" : r.Debit.ToString("N2"))</td><td class="num">@(r.Credit == 0 ? "" : r.Credit.ToString("N2"))</td><td class="num">@r.RunningBalance.ToString("N2")</td></tr> }
+<tr class="fw-bold"><td colspan="5">Total</td><td class="num">@Model.Rows.Sum(x => x.Debit).ToString("N2")</td><td class="num">@Model.Rows.Sum(x => x.Credit).ToString("N2")</td><td></td></tr>
+</tbody></table></div>

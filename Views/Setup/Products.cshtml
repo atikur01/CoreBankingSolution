@@ -1,0 +1,6 @@
+@model List<Product>
+@{ ViewData["Title"] = "Products"; }
+<div class="page-title"><h3>Products</h3><a class="btn btn-primary" asp-action="ProductEdit">+ New product</a></div>
+<div class="panel"><table class="table table-sm table-hover"><thead><tr><th>Code</th><th>Name</th><th>Category</th><th>GL</th><th class="num">Rate %</th><th>Interest pay</th><th class="num">Min open</th><th>Status</th><th></th></tr></thead><tbody>
+@foreach (var p in Model) { <tr><td>@p.Code</td><td>@p.Name</td><td>@p.Category</td><td>@p.GlAccount?.Code</td><td class="num">@p.InterestRate</td><td>@p.PayFrequency</td><td class="num">@p.MinOpeningBalance.ToString("N0")</td><td>@(p.IsActive ? "Active" : "Inactive")</td><td><a asp-action="ProductEdit" asp-route-id="@p.Id">Edit</a> · <a asp-action="ProductRates" asp-route-id="@p.Id">Rates</a></td></tr> }
+</tbody></table></div>

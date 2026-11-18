@@ -1,8 +1,34 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
-}
-
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+@model DashboardVm
+@{ ViewData["Title"] = "Dashboard"; }
+<div class="page-title"><h3>Dashboard</h3><span class="text-muted">@DateTime.Now.ToString("dddd, dd MMM yyyy")</span></div>
+<div class="row g-3 mb-3">
+    <div class="col-6 col-lg-3"><div class="card card-stat"><div class="card-body"><div class="text-muted small">Customers</div><div class="num">@Model.Customers.ToString("N0")</div></div></div></div>
+    <div class="col-6 col-lg-3"><div class="card card-stat"><div class="card-body"><div class="text-muted small">Active accounts</div><div class="num">@Model.ActiveAccounts.ToString("N0")</div></div></div></div>
+    <div class="col-6 col-lg-3"><div class="card card-stat"><div class="card-body"><div class="text-muted small">Total deposits</div><div class="num">@Model.TotalDeposits.ToString("N2")</div></div></div></div>
+    <div class="col-6 col-lg-3"><div class="card card-stat"><div class="card-body"><div class="text-muted small">Loans outstanding (@Model.RunningLoans)</div><div class="num">@Model.LoanOutstanding.ToString("N2")</div></div></div></div>
+    <div class="col-6 col-lg-3"><div class="card card-stat"><div class="card-body"><div class="text-muted small">Today's authorized vouchers</div><div class="num">@Model.TodayTxns</div><div class="small text-muted">Dr @Model.TodayDebit.ToString("N0") / Cr @Model.TodayCredit.ToString("N0")</div></div></div></div>
+    <div class="col-6 col-lg-3"><div class="card card-stat"><div class="card-body"><div class="text-muted small">Classified (SS/DF/BL) loans</div><div class="num @(Model.NplLoans > 0 ? "text-danger" : "")">@Model.NplLoans</div><div class="small text-muted">Provision held @Model.Provision.ToString("N2")</div></div></div></div>
+    <div class="col-6 col-lg-3"><div class="card card-stat"><div class="card-body"><div class="text-muted small">CTR candidates today</div><div class="num">@Model.CtrToday</div><a class="small" asp-controller="Reports" asp-action="Ctr">Cash transaction report</a></div></div></div>
+    <div class="col-6 col-lg-3"><div class="card card-stat"><div class="card-body"><div class="text-muted small">Awaiting action</div>
+        <div><a asp-controller="Transactions" asp-action="Pending">@Model.PendingVouchers vouchers</a> · <a asp-controller="Accounts" asp-action="Index" asp-route-status="PendingApproval">@Model.PendingAccounts accounts</a></div>
+        <div><a asp-controller="Loans" asp-action="Index">@Model.PendingLoans loans</a> · <a asp-controller="Customers" asp-action="Index" asp-route-kyc="Pending">@Model.PendingKyc KYC</a></div></div></div></div>
+</div>
+<div class="row g-3">
+    <div class="col-lg-6"><div class="panel"><h5>Deposits by product</h5>
+        @{ var max = Model.DepositByProduct.Count == 0 ? 1 : Math.Max(1, Model.DepositByProduct.Max(x => Math.Abs(x.Amount))); }
+        @foreach (var d in Model.DepositByProduct.OrderByDescending(x => x.Amount))
+        {
+            <div class="mb-2"><div class="d-flex justify-content-between small"><span>@d.Name</span><b>@d.Amount.ToString("N2")</b></div>
+            <div class="progress" style="height:8px"><div class="progress-bar" style="width:@((int)(Math.Abs(d.Amount) / max * 100))%"></div></div></div>
+        }
+        @if (Model.DepositByProduct.Count == 0) { <p class="text-muted">No accounts yet.</p> }
+    </div></div>
+    <div class="col-lg-6"><div class="panel"><h5>Branches &amp; business date</h5>
+        <table class="table table-sm"><thead><tr><th>Branch</th><th>Layer</th><th>Business date</th><th>Status</th></tr></thead><tbody>
+        @foreach (var b in Model.Branches) { <tr><td>@b.Code - @b.Name</td><td>@b.Layer</td><td>@b.BusinessDate.ToString("dd-MMM-yyyy")</td><td>@(b.IsActive ? (b.DayOpen ? "Open" : "Day closed") : "Closed")</td></tr> }
+        </tbody></table></div></div>
+    <div class="col-12"><div class="panel"><h5>Recent vouchers</h5>
+        <table class="table table-sm"><thead><tr><th>Voucher</th><th>Date</th><th>Type</th><th>Description</th><th class="num">Amount</th><th>Status</th></tr></thead><tbody>
+        @foreach (var v in Model.Recent) { <tr><td><a asp-controller="Transactions" asp-action="Details" asp-route-id="@v.Id">@v.VoucherNo</a></td><td>@v.TxnDate.ToString("dd-MMM-yy")</td><td>@v.Type</td><td>@v.Description</td><td class="num">@v.TotalAmount.ToString("N2")</td><td>@v.Status</td></tr> }
+        </tbody></table></div></div>
 </div>

@@ -1,0 +1,11 @@
+@model TransferVm
+@{ ViewData["Title"] = "Fund transfer"; }
+<div class="page-title"><h3>Fund transfer (same branch or inter-branch)</h3></div>
+<form method="post" class="panel" style="max-width:820px"><div asp-validation-summary="All" class="text-danger"></div><div class="row g-3">
+    <div class="col-md-6"><label class="form-label" asp-for="FromNo"></label><input class="form-control" asp-for="FromNo" data-account-lookup="#fInfo" autocomplete="off" /><div id="fInfo" class="form-text"></div></div>
+    <div class="col-md-6"><label class="form-label" asp-for="ToNo"></label><input class="form-control" asp-for="ToNo" data-account-lookup="#tInfo" autocomplete="off" /><div id="tInfo" class="form-text"></div></div>
+    @Html.Field(m => m.Amount, 3)
+    @Html.Field(m => m.ChequeNo, 3)
+    @Html.Field(m => m.ValueDate, 3)
+    @Html.Field(m => m.Narration, 12)
+</div><div class="mt-3"><button class="btn btn-primary">Create voucher</button></div></form>

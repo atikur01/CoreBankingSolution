@@ -1,51 +1,102 @@
-﻿<!DOCTYPE html>
+@inject UserContext Me
+@inject Microsoft.AspNetCore.Identity.SignInManager<Microsoft.AspNetCore.Identity.IdentityUser> SignIn
+@{
+    var signedIn = SignIn.IsSignedIn(User);
+    UserProfile? prof = signedIn ? await Me.ProfileAsync() : null;
+    bool isChecker = User.IsInRole("Administrator") || User.IsInRole("Manager") || User.IsInRole("Supervisor");
+    bool isSetup = User.IsInRole("Administrator") || User.IsInRole("Manager");
+    bool isOps = isChecker || User.IsInRole("Officer");
+    bool isAdmin = User.IsInRole("Administrator");
+    string Active(string c) => string.Equals((string?)ViewContext.RouteData.Values["controller"], c, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+}
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - CoreBankingSolution</title>
-    <script type="importmap"></script>
+    <title>@ViewData["Title"] - Core Banking Solution</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/CoreBankingSolution.styles.css" asp-append-version="true" />
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">CoreBankingSolution</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                    <partial name="_LoginPartial" />
-                </div>
-            </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
+<nav class="navbar navbar-dark topbar fixed-top px-3">
+    <div class="d-flex align-items-center gap-2">
+        @if (signedIn) { <button class="btn btn-sm btn-outline-light d-lg-none" type="button" onclick="document.body.classList.toggle('menu-open')">☰</button> }
+        <a class="navbar-brand fw-bold" asp-controller="Home" asp-action="Index">🏦 Core Banking Solution</a>
     </div>
-
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - CoreBankingSolution - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    @if (signedIn)
+    {
+        <div class="d-flex align-items-center gap-3 text-white small">
+            <span class="d-none d-md-inline">Branch: <b>@(prof?.Branch?.Code ?? "-") @prof?.Branch?.Name</b> &nbsp;|&nbsp; Business date: <b>@(prof?.Branch?.BusinessDate.ToString("dd-MMM-yyyy") ?? "-")</b></span>
+            <span>👤 @(prof?.FullName ?? User.Identity?.Name)</span>
+            <a class="btn btn-sm btn-outline-light" asp-controller="Password" asp-action="Change">Password</a>
+            <a class="btn btn-sm btn-outline-light d-none d-md-inline" asp-area="Identity" asp-page="/Account/Manage/TwoFactorAuthentication" title="Two-factor authentication (OTP)">2FA</a>
+            <form method="post" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="/" class="d-inline"><button class="btn btn-sm btn-light">Logout</button></form>
         </div>
-    </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    @await RenderSectionAsync("Scripts", required: false)
+    }
+</nav>
+@if (signedIn)
+{
+<aside class="sidebar">
+    <a class="@Active("Home")" asp-controller="Home" asp-action="Index">📊 Dashboard</a>
+    <details open="@(new[]{"Customers","Sanctions"}.Any(c => Active(c) != ""))"><summary>Customers &amp; KYC</summary>
+        <a asp-controller="Customers" asp-action="Index">Customer list</a>
+        <a asp-controller="Customers" asp-action="Create">New customer (CIF)</a>
+        <a asp-controller="Sanctions" asp-action="Index">UNSCR / Sanction screening</a>
+    </details>
+    <details open="@(Active("Accounts") != "")"><summary>Deposit Accounts</summary>
+        <a asp-controller="Accounts" asp-action="Index">Account list</a>
+        <a asp-controller="Accounts" asp-action="Open">Open account / FDR / DPS</a>
+    </details>
+    <details open="@(Active("Transactions") != "")"><summary>Transactions</summary>
+        <a asp-controller="Transactions" asp-action="Deposit">Cash deposit</a>
+        <a asp-controller="Transactions" asp-action="Withdraw">Cash withdrawal</a>
+        <a asp-controller="Transactions" asp-action="Transfer">Fund transfer</a>
+        @if (isOps) { <a asp-controller="Transactions" asp-action="Journal">GL journal voucher</a> }
+        @if (isChecker) { <a asp-controller="Transactions" asp-action="Pending">Authorization queue</a> }
+        <a asp-controller="Transactions" asp-action="Register">Voucher register</a>
+    </details>
+    <details open="@(new[]{"Loans"}.Any(c => Active(c) != ""))"><summary>Loans</summary>
+        <a asp-controller="Loans" asp-action="Index">Loan list</a>
+        <a asp-controller="Loans" asp-action="Apply">New loan application</a>
+    </details>
+    <details open="@(new[]{"Remittance","Clearing","StandingInstructions"}.Any(c => Active(c) != ""))"><summary>Bills, Clearing &amp; SI</summary>
+        <a asp-controller="Remittance" asp-action="Index">PO / DD / TT</a>
+        <a asp-controller="Clearing" asp-action="Index">Clearing</a>
+        <a asp-controller="StandingInstructions" asp-action="Index">Standing instructions</a>
+    </details>
+    @if (isChecker) { <a class="@Active("Eod")" asp-controller="Eod" asp-action="Index">🌙 EOD / BOD</a> }
+    <a class="@Active("Reports")" asp-controller="Reports" asp-action="Index">📑 Reports</a>
+    @if (isSetup)
+    {
+        <details open="@(Active("Setup") != "")"><summary>Setup</summary>
+            <a asp-controller="Setup" asp-action="Branches">Branches</a>
+            <a asp-controller="Setup" asp-action="Gl">Chart of accounts</a>
+            <a asp-controller="Setup" asp-action="Products">Products &amp; rates</a>
+            <a asp-controller="Setup" asp-action="Currencies">Currencies &amp; FX</a>
+            <a asp-controller="Setup" asp-action="Holidays">Holiday calendar</a>
+            <a asp-controller="Setup" asp-action="Excise">Excise duty slabs</a>
+            <a asp-controller="Setup" asp-action="Parameters">Bank parameters</a>
+        </details>
+    }
+    @if (isAdmin)
+    {
+        <details open="@(Active("Users") != "")"><summary>Administration</summary>
+            <a asp-controller="Users" asp-action="Index">Users</a>
+            <a asp-controller="Users" asp-action="Roles">Roles &amp; permissions</a>
+            <a asp-controller="Users" asp-action="Audit">Audit trail</a>
+        </details>
+    }
+</aside>
+}
+<main class="@(signedIn ? "content" : "content-anon")">
+    @if (TempData["ok"] is string ok) { <div class="alert alert-success alert-dismissible fade show">@ok<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div> }
+    @if (TempData["err"] is string err) { <div class="alert alert-danger alert-dismissible fade show">@err<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div> }
+    @RenderBody()
+</main>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

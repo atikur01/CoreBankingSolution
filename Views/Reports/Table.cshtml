@@ -1,0 +1,19 @@
+@model ReportVm
+@{ ViewData["Title"] = Model.Title; }
+<div class="page-title no-print"><h3>@Model.Title</h3><div><a class="btn btn-outline-secondary" href="javascript:window.print()">Print</a>
+ <a class="btn btn-outline-success" href="@(Context.Request.Path + Context.Request.QueryString + (Context.Request.QueryString.HasValue ? "&" : "?") + "csv=true")">Export CSV</a> <a class="btn btn-light" asp-action="Index">All reports</a></div></div>
+<div class="panel no-print"><form class="row g-2 align-items-end" method="get" asp-action="@Model.Action">
+ @if (Model.ShowFrom) { <div class="col-md-2"><label class="form-label">@(Model.ShowTo ? "From" : "Date")</label><input type="date" name="from" class="form-control" value="@Model.From.ToString("yyyy-MM-dd")" /></div> }
+ @if (Model.ShowTo) { <div class="col-md-2"><label class="form-label">@(Model.ShowFrom ? "To" : "As on / up to")</label><input type="date" name="to" class="form-control" value="@Model.To.ToString("yyyy-MM-dd")" /></div> }
+ @if (Model.ShowBranch) { <div class="col-md-3"><label class="form-label">Branch</label><select name="branchId" class="form-select" asp-items="Model.Branches"><option value="">All branches</option></select></div> }
+ @if (Model.ExtraLabel != null) { <div class="col-md-3"><label class="form-label">@Model.ExtraLabel</label><input name="extra" class="form-control" value="@Model.Extra" /></div> }
+ <div class="col-md-2"><button class="btn btn-primary">Run report</button></div></form></div>
+<div class="panel">
+ <div class="d-none d-print-block mb-2"><b>@Model.Title</b></div>
+ @if (!string.IsNullOrEmpty(Model.Description)) { <p class="text-muted">@Model.Description</p> }
+ <div class="table-responsive"><table class="table table-sm table-hover"><thead><tr>@for (int i = 0; i < Model.Columns.Length; i++) { <th class="@(i < Model.Numeric.Length && Model.Numeric[i] ? "num" : "")">@Model.Columns[i]</th> }</tr></thead><tbody>
+ @foreach (var r in Model.Rows) { <tr>@for (int i = 0; i < r.Length; i++) { <td class="@(i < Model.Numeric.Length && Model.Numeric[i] ? "num" : "")">@r[i]</td> }</tr> }
+ @if (Model.Totals != null) { <tr class="fw-bold table-light">@for (int i = 0; i < Model.Totals.Length; i++) { <td class="@(i < Model.Numeric.Length && Model.Numeric[i] ? "num" : "")">@Model.Totals[i]</td> }</tr> }
+ </tbody></table></div>
+ @if (Model.Rows.Count == 0) { <p class="text-muted">No data for the selected criteria.</p> }
+</div>

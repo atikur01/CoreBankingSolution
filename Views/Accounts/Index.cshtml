@@ -1,0 +1,9 @@
+@model List<Account>
+@{ ViewData["Title"] = "Accounts"; }
+<div class="page-title"><h3>Deposit accounts</h3><a class="btn btn-primary" asp-action="Open">+ Open account</a></div>
+<div class="panel"><form class="row g-2 mb-3"><div class="col-md-4"><input name="q" value="@ViewBag.Q" class="form-control" placeholder="Account no, title, CIF or mobile" /></div>
+<div class="col-md-3"><select name="status" class="form-select" asp-items="Html.GetEnumSelectList<AccountStatus>()"><option value="">All statuses</option></select></div>
+<div class="col-md-3"><select name="branchId" class="form-select" asp-items="(SelectList)ViewBag.Branches"><option value="">All branches</option></select></div><div class="col-md-2"><button class="btn btn-outline-primary">Search</button></div></form>
+<table class="table table-sm table-hover"><thead><tr><th>Account no</th><th>Title</th><th>Product</th><th>Branch</th><th class="num">Balance</th><th>Status</th><th></th></tr></thead><tbody>
+@foreach (var a in Model) { <tr><td>@a.AccountNo</td><td>@a.Title</td><td>@a.Product?.Name</td><td>@a.Branch?.Code</td><td class="num">@a.Balance.ToString("N2")</td><td>@Html.Raw(FormHelpers.Badge(a.Status))</td><td><a asp-action="Details" asp-route-id="@a.Id">Open</a> · <a asp-action="Statement" asp-route-id="@a.Id">Statement</a></td></tr> }
+</tbody></table></div>

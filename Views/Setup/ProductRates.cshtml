@@ -1,0 +1,18 @@
+@model List<ProductRate>
+@{ var p = (Product)ViewBag.Product; ViewData["Title"] = "Rates"; }
+<div class="page-title"><h3>Interest rate slabs - @p.Code @p.Name</h3><a class="btn btn-light" asp-action="Products">Back</a></div>
+<div class="panel"><h5>Add rate (maker-checker, back-dated effective date allowed with approval)</h5>
+<form method="post" asp-action="AddRate" class="row g-2 align-items-end">
+    <input type="hidden" name="ProductId" value="@p.Id" />
+    <div class="col-md-2"><label class="form-label">Effective from</label><input type="date" name="EffectiveFrom" class="form-control" value="@DateTime.Today.ToString("yyyy-MM-dd")" /></div>
+    <div class="col-md-2"><label class="form-label">Amount from</label><input type="number" step="0.01" name="MinAmount" class="form-control" value="0" /></div>
+    <div class="col-md-2"><label class="form-label">Amount to (0 = ∞)</label><input type="number" step="0.01" name="MaxAmount" class="form-control" value="0" /></div>
+    <div class="col-md-1"><label class="form-label">Term from</label><input type="number" name="MinTermMonths" class="form-control" value="0" /></div>
+    <div class="col-md-1"><label class="form-label">Term to</label><input type="number" name="MaxTermMonths" class="form-control" value="0" /></div>
+    <div class="col-md-2"><label class="form-label">Rate % p.a.</label><input type="number" step="0.0001" name="Rate" class="form-control" required /></div>
+    <div class="col-md-2"><button class="btn btn-primary">Submit</button></div>
+</form></div>
+<div class="panel"><table class="table table-sm"><thead><tr><th>Effective</th><th class="num">Amount slab</th><th>Term slab</th><th class="num">Rate %</th><th>Status</th><th>Maker</th><th>Checker</th><th></th></tr></thead><tbody>
+@foreach (var r in Model) { <tr><td>@r.EffectiveFrom.ToString("dd-MMM-yyyy")</td><td class="num">@r.MinAmount.ToString("N0") - @(r.MaxAmount == 0 ? "∞" : r.MaxAmount.ToString("N0"))</td><td>@r.MinTermMonths - @(r.MaxTermMonths == 0 ? "∞" : r.MaxTermMonths.ToString()) m</td><td class="num">@r.Rate</td><td>@Html.Raw(FormHelpers.Badge(r.Status))</td><td>@r.MadeBy</td><td>@r.CheckedBy</td>
+    <td>@if (r.Status == ApprovalStatus.Pending) { <form method="post" asp-action="DecideRate" class="d-inline"><input type="hidden" name="id" value="@r.Id" /><button name="approve" value="true" class="btn btn-sm btn-success">Approve</button> <button name="approve" value="false" class="btn btn-sm btn-outline-danger">Reject</button></form> }</td></tr> }
+</tbody></table><p class="text-muted small mb-0">The rate engine picks the latest approved slab effective on the business date (savings/SND at EOD, FDR/DPS/loans at booking).</p></div>

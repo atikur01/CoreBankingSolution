@@ -1,0 +1,12 @@
+@model List<Branch>
+@{ ViewData["Title"] = "EOD / BOD"; var checks = (Dictionary<int, List<string>>)ViewBag.Checks; var logs = (List<EodLog>)ViewBag.Logs; }
+<div class="page-title"><h3>End of day / beginning of day</h3></div>
+<div class="panel"><p class="text-muted">EOD runs branch by branch. It refuses to close a day while unauthorized vouchers, unapproved accounts or unsettled clearing items exist. The steps are: standing instructions → deposit interest accrual → overdraft interest → loan interest recognition → loan classification &amp; provisioning (month-end) → FDR/DPS maturity &amp; renewal → periodic interest payment (month-end) → dormancy flagging → year-end excise duty and profit &amp; loss transfer. Everything runs in one transaction: any failure rolls the whole day back. BOD then opens the next working day (weekly holidays and the holiday calendar are skipped).</p>
+<table class="table"><thead><tr><th>Branch</th><th>Business date</th><th>Pre-checks</th><th></th></tr></thead><tbody>
+@foreach (var b in Model) { var c = checks[b.Id]; <tr><td>@b.Code - @b.Name</td><td><b>@b.BusinessDate.ToString("dddd, dd-MMM-yyyy")</b></td>
+ <td>@if (c.Count == 0) { <span class="text-success">✓ ready to close</span> } else { foreach (var m in c) { <div class="text-danger small">✗ @m</div> } }</td>
+ <td><form method="post" asp-action="Run" onsubmit="return confirm('Run EOD for @b.Name and open the next business day?')"><input type="hidden" name="branchId" value="@b.Id" /><button class="btn btn-primary" disabled="@(c.Count > 0)">Run EOD &amp; BOD</button></form></td></tr> }
+</tbody></table></div>
+<div class="panel"><h5>EOD log</h5><table class="table table-sm"><thead><tr><th>Time</th><th>Branch</th><th>Business date</th><th>Step</th><th>Status</th><th>Message</th><th>By</th></tr></thead><tbody>
+@foreach (var l in logs) { <tr><td>@l.At.ToString("dd-MMM HH:mm:ss")</td><td>@l.Branch?.Code</td><td>@l.BusinessDate.ToString("dd-MMM-yy")</td><td>@l.Step</td><td>@Html.Raw(FormHelpers.Badge(l.Status))</td><td>@l.Message</td><td>@l.RunBy</td></tr> }
+</tbody></table></div>

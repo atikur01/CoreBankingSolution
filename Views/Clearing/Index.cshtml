@@ -1,0 +1,14 @@
+@model List<ClearingItem>
+@{ ViewData["Title"] = "Clearing"; }
+<div class="page-title"><h3>Clearing (inward &amp; outward)</h3></div>
+<div class="panel"><h5>Register instrument</h5><form method="post" asp-action="Register" class="row g-2">
+ <div class="col-md-2"><select name="Direction" class="form-select"><option value="1">Outward (deposit cheque for collection)</option><option value="2">Inward (cheque drawn on us)</option></select></div>
+ <div class="col-md-2"><input name="InstrumentNo" class="form-control" placeholder="Cheque no" required /></div>
+ <div class="col-md-2"><input name="BankName" class="form-control" placeholder="Bank" /></div><div class="col-md-2"><input name="BranchName" class="form-control" placeholder="Bank branch" /></div>
+ <div class="col-md-1"><input name="RoutingNo" class="form-control" placeholder="Routing" /></div><div class="col-md-1"><input name="Amount" type="number" step="0.01" class="form-control" placeholder="Amount" required /></div>
+ <div class="col-md-2"><input name="accountNo" class="form-control" placeholder="Our account no" required /></div><div class="col-12"><button class="btn btn-primary">Register</button></div></form>
+ <p class="small text-muted mt-2 mb-0">Outward: customer account is credited when clearing is settled (funds available immediately after settlement). Inward: account is debited on settlement; a returned inward cheque is entered in the cheque return register and the dishonour charge is recovered.</p></div>
+<div class="panel"><table class="table table-sm"><thead><tr><th>Direction</th><th>Instrument</th><th>Bank</th><th>Account</th><th class="num">Amount</th><th>Registered</th><th>Status</th><th style="width:300px"></th></tr></thead><tbody>
+@foreach (var c in Model) { <tr><td>@c.Direction</td><td>@c.InstrumentNo</td><td>@c.BankName @c.BranchName</td><td>@c.Account?.AccountNo</td><td class="num">@c.Amount.ToString("N2")</td><td>@c.RegisteredOn.ToString("dd-MMM-yy")</td><td>@Html.Raw(FormHelpers.Badge(c.Status))@(c.ReturnReason != null ? " " + c.ReturnReason : "")</td>
+ <td>@if (c.Status == ClearingStatus.Registered) { <form method="post" class="d-flex gap-1"><input type="hidden" name="id" value="@c.Id" /><button asp-action="Settle" class="btn btn-sm btn-success">Settle</button><input name="reason" class="form-control form-control-sm" placeholder="Return reason" /><button asp-action="Return" class="btn btn-sm btn-outline-danger">Return</button></form> }</td></tr> }
+</tbody></table></div>

@@ -1,0 +1,33 @@
+@model Voucher
+@{
+    ViewData["Title"] = Model.VoucherNo;
+    bool checker = User.IsInRole("Administrator") || User.IsInRole("Manager") || User.IsInRole("Supervisor");
+    bool ops = checker || User.IsInRole("Officer");
+    var orig = (Voucher?)ViewBag.Reversal; var revBy = (Voucher?)ViewBag.ReversedBy;
+}
+<div class="page-title no-print"><h3>Voucher @Model.VoucherNo @Html.Raw(FormHelpers.Badge(Model.Status))</h3><div><a class="btn btn-outline-secondary" href="javascript:window.print()">Print</a> <a class="btn btn-light" asp-action="Register">Register</a></div></div>
+<div class="panel voucher-print">
+ <div class="d-flex justify-content-between"><div><h5 class="mb-0">Voucher @Model.VoucherNo</h5><div class="text-muted">@Model.Type · Branch @Model.Branch?.Code @Model.Branch?.Name</div></div>
+ <div class="text-end"><div>Txn date: <b>@Model.TxnDate.ToString("dd-MMM-yyyy")</b></div><div>Value date: @Model.ValueDate.ToString("dd-MMM-yyyy") @(Model.IsBackValue ? "(BACK-VALUE)" : "")</div></div></div>
+ <hr />
+ <p class="mb-1"><b>Description:</b> @Model.Description</p>
+ @if (!string.IsNullOrEmpty(Model.CounterParty)) { <p class="mb-1"><b>Party:</b> @Model.CounterParty</p> }
+ @if (!string.IsNullOrEmpty(Model.ChequeNo)) { <p class="mb-1"><b>Cheque:</b> @Model.ChequeNo</p> }
+ @if (orig != null) { <p class="mb-1 text-danger"><b>Reversal of:</b> <a asp-action="Details" asp-route-id="@orig.Id">@orig.VoucherNo</a></p> }
+ @if (revBy != null) { <p class="mb-1 text-danger"><b>Reversed by:</b> <a asp-action="Details" asp-route-id="@revBy.Id">@revBy.VoucherNo</a></p> }
+ @if (!string.IsNullOrEmpty(Model.RejectReason)) { <p class="mb-1 text-danger"><b>Rejected:</b> @Model.RejectReason</p> }
+ <table class="table table-sm mt-2"><thead><tr><th>Br</th><th>GL</th><th>Account</th><th>Narration</th><th class="num">Debit</th><th class="num">Credit</th></tr></thead><tbody>
+ @foreach (var l in Model.Lines.OrderBy(x => x.Id)) { <tr><td>@l.BranchId</td><td>@l.GlAccount?.Code @l.GlAccount?.Name</td><td>@if (l.Account != null) { <a asp-controller="Accounts" asp-action="Details" asp-route-id="@l.AccountId">@l.Account.AccountNo</a> }</td><td>@l.Narration</td><td class="num">@(l.Debit == 0 ? "" : l.Debit.ToString("N2"))</td><td class="num">@(l.Credit == 0 ? "" : l.Credit.ToString("N2"))</td></tr> }
+ <tr class="fw-bold"><td colspan="4">Total (@ViewBag.Currency)</td><td class="num">@Model.Lines.Sum(x => x.Debit).ToString("N2")</td><td class="num">@Model.Lines.Sum(x => x.Credit).ToString("N2")</td></tr></tbody></table>
+ <div class="row small text-muted"><div class="col-md-4">Maker: <b>@Model.MakerId</b><br />@Model.MadeAt.ToString("dd-MMM-yyyy HH:mm")</div><div class="col-md-4">Checker: <b>@Model.CheckerId</b><br />@Model.CheckedAt?.ToString("dd-MMM-yyyy HH:mm")</div><div class="col-md-4">Required authorization: <b>@(Model.RequiredLevel == 2 ? "Manager level" : "Supervisor level")</b></div></div>
+</div>
+@if (Model.Status == VoucherStatus.Pending && checker)
+{
+ <div class="panel no-print"><form method="post" class="d-flex gap-2 align-items-center"><input type="hidden" name="id" value="@Model.Id" /><input type="hidden" name="returnTo" value="details" />
+  <button asp-action="Authorize" class="btn btn-success">Authorize &amp; post</button><input name="reason" class="form-control" style="max-width:320px" placeholder="Rejection reason" /><button asp-action="Reject" class="btn btn-outline-danger">Reject</button></form></div>
+}
+@if (Model.Status == VoucherStatus.Authorized && ops && Model.Type != VoucherType.Reversal)
+{
+ <div class="panel no-print"><form method="post" asp-action="Reverse" class="d-flex gap-2"><input type="hidden" name="id" value="@Model.Id" /><input name="reason" class="form-control" style="max-width:360px" placeholder="Reversal reason" required />
+  <button class="btn btn-outline-warning">Reverse voucher</button></form><div class="small text-muted mt-1">Creates an equal-and-opposite voucher (all related charges/VAT included) that must itself be authorized.</div></div>
+}

@@ -1,0 +1,8 @@
+@model List<Holiday>
+@{ ViewData["Title"] = "Holidays"; }
+<div class="page-title"><h3>Holiday calendar</h3></div>
+<div class="panel"><p class="text-muted">Weekly holidays are set in Bank Parameters (<code>WeeklyHolidays</code>). EOD skips these dates when opening the next business day.</p>
+<form method="post" asp-action="AddHoliday" class="row g-2 mb-3"><div class="col-md-3"><input type="date" name="Date" class="form-control" required /></div><div class="col-md-5"><input name="Description" class="form-control" placeholder="Description" required /></div><div class="col-md-2"><button class="btn btn-primary">Add holiday</button></div></form>
+<table class="table table-sm"><thead><tr><th>Date</th><th>Day</th><th>Description</th><th></th></tr></thead><tbody>
+@foreach (var h in Model) { <tr><td>@h.Date.ToString("dd-MMM-yyyy")</td><td>@h.Date.DayOfWeek</td><td>@h.Description</td><td><form method="post" asp-action="DeleteHoliday"><input type="hidden" name="id" value="@h.Id" /><button class="btn btn-sm btn-outline-danger">Delete</button></form></td></tr> }
+</tbody></table></div>

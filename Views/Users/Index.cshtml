@@ -1,0 +1,10 @@
+@model List<UserRow>
+@{ ViewData["Title"] = "Users"; }
+<div class="page-title"><h3>User management</h3><a class="btn btn-primary" asp-action="Create">+ New user</a></div>
+<div class="panel"><table class="table table-sm table-hover"><thead><tr><th>User ID</th><th>Name</th><th>Employee</th><th>Branch</th><th>Role</th><th>Limits (Dr/Cr)</th><th>Password changed</th><th>Status</th><th style="width:300px"></th></tr></thead><tbody>
+@foreach (var r in Model) { <tr><td>@r.User.UserName</td><td>@r.Profile?.FullName</td><td>@r.Profile?.EmployeeId</td><td>@r.Profile?.Branch?.Code</td><td>@r.Roles</td><td>@r.Profile?.MaxDebit.ToString("N0") / @r.Profile?.MaxCredit.ToString("N0")</td><td>@r.Profile?.PasswordChangedOn.ToString("dd-MMM-yy")</td>
+ <td>@if (r.Profile?.IsActive == false) { <span class="badge bg-secondary">Deactivated</span> } else if (r.Locked) { <span class="badge bg-danger">Locked</span> } else { <span class="badge bg-success">Active</span> }</td>
+ <td class="d-flex gap-1"><a class="btn btn-sm btn-outline-primary" asp-action="Edit" asp-route-id="@r.User.Id">Edit</a>
+  <form method="post" asp-action="ResetPassword" asp-route-id="@r.User.Id" onsubmit="return confirm('Reset password for @r.User.UserName?')"><button class="btn btn-sm btn-outline-warning">Reset password</button></form>
+  <form method="post" asp-action="Unlock" asp-route-id="@r.User.Id"><button class="btn btn-sm btn-outline-secondary">Unlock</button></form></td></tr> }
+</tbody></table><p class="small text-muted mb-0">Default administrator: <code>admin@corebank.local</code> - the seeded password must be changed at first login.</p></div>

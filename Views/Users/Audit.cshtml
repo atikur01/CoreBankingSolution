@@ -1,0 +1,9 @@
+@model List<AuditLog>
+@{ ViewData["Title"] = "Audit trail"; }
+<div class="page-title"><h3>Audit trail</h3></div>
+<div class="panel"><form class="row g-2 mb-3"><div class="col-md-2"><input type="date" name="from" class="form-control" value="@(((DateTime)ViewBag.From).ToString("yyyy-MM-dd"))" /></div><div class="col-md-2"><input type="date" name="to" class="form-control" value="@(((DateTime)ViewBag.To).ToString("yyyy-MM-dd"))" /></div>
+ <div class="col-md-2"><input name="user" value="@ViewBag.User" class="form-control" placeholder="User" /></div><div class="col-md-2"><input name="entity" value="@ViewBag.Entity" class="form-control" placeholder="Entity (Account…)" /></div><div class="col-md-2"><input name="q" value="@ViewBag.Q" class="form-control" placeholder="Key / text" /></div>
+ <div class="col-md-2"><button class="btn btn-outline-primary">Search</button> <button class="btn btn-outline-success" name="csv" value="true">CSV</button></div></form>
+<table class="table table-sm"><thead><tr><th>Time</th><th>User</th><th>IP</th><th>Action</th><th>Entity</th><th>Key</th><th>Changes</th></tr></thead><tbody>
+@foreach (var a in Model) { <tr><td class="text-nowrap">@a.At.ToString("dd-MMM HH:mm:ss")</td><td>@a.UserName</td><td>@a.Ip</td><td>@a.Action</td><td>@a.Entity</td><td>@a.EntityKey</td><td class="small text-break">@a.Details</td></tr> }
+</tbody></table><p class="small text-muted">Showing the latest 500 entries. Every insert, update and delete of business data is recorded with user, terminal IP and before/after values.</p></div>

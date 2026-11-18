@@ -1,0 +1,14 @@
+@model List<StandingInstruction>
+@{ ViewData["Title"] = "Standing instructions"; }
+<div class="page-title"><h3>Standing instruction register</h3></div>
+<div class="panel"><h5>New instruction</h5><form method="post" asp-action="Create" class="row g-2">
+ <div class="col-md-3"><input name="fromNo" class="form-control" placeholder="Debit account no" value="@ViewBag.From" data-account-lookup="#f1" required /><div id="f1" class="form-text"></div></div>
+ <div class="col-md-3"><input name="toNo" class="form-control" placeholder="Credit account no" data-account-lookup="#t1" required /><div id="t1" class="form-text"></div></div>
+ <div class="col-md-2"><input name="amount" type="number" step="0.01" class="form-control" placeholder="Amount" required /></div>
+ <div class="col-md-2"><select name="frequency" class="form-select" asp-items="Html.GetEnumSelectList<SiFrequency>()"></select></div>
+ <div class="col-md-2"><input type="date" name="startDate" class="form-control" value="@DateTime.Today.ToString("yyyy-MM-dd")" required /></div>
+ <div class="col-md-2"><input type="date" name="endDate" class="form-control" /></div><div class="col-md-6"><input name="narration" class="form-control" placeholder="Narration (e.g. loan installment, rent)" /></div><div class="col-md-2"><button class="btn btn-primary">Register</button></div></form></div>
+<div class="panel"><table class="table table-sm"><thead><tr><th>#</th><th>From</th><th>To</th><th class="num">Amount</th><th>Frequency</th><th>Next run</th><th>Done / failed</th><th>Last result</th><th>Status</th><th></th></tr></thead><tbody>
+@foreach (var s in Model) { <tr><td>@s.Id</td><td>@s.FromAccount?.AccountNo</td><td>@s.ToAccount?.AccountNo</td><td class="num">@s.Amount.ToString("N2")</td><td>@s.Frequency</td><td>@s.NextRunDate.ToString("dd-MMM-yy")</td><td>@s.ExecutedCount / @s.FailedCount</td><td>@s.LastResult</td><td>@Html.Raw(FormHelpers.Badge(s.Status))</td>
+ <td>@if (s.Status is SiStatus.Active or SiStatus.Paused) { <form method="post" asp-action="SetStatus" class="d-flex gap-1"><input type="hidden" name="id" value="@s.Id" />@if (s.Status == SiStatus.Active) {<button name="status" value="Paused" class="btn btn-sm btn-outline-secondary">Pause</button>} else {<button name="status" value="Active" class="btn btn-sm btn-outline-success">Resume</button>}<button name="status" value="Cancelled" class="btn btn-sm btn-outline-danger">Cancel</button></form> }</td></tr> }
+</tbody></table></div>

@@ -1,0 +1,72 @@
+@model Account
+@{
+    ViewData["Title"] = Model.AccountNo;
+    var txns = (List<AccountTransaction>)ViewBag.Txns; var books = (List<ChequeBook>)ViewBag.Books; var stops = (List<StopPayment>)ViewBag.Stops;
+    var rets = (List<ChequeReturn>)ViewBag.Returns; var pend = (List<Voucher>)ViewBag.Pending; var sis = (List<StandingInstruction>)ViewBag.Sis;
+    bool checker = User.IsInRole("Administrator") || User.IsInRole("Manager") || User.IsInRole("Supervisor");
+    bool ops = checker || User.IsInRole("Officer");
+    var cat = Model.Product!.Category; bool isTerm = cat is ProductCategory.FDR or ProductCategory.DPS;
+    bool live = Model.Status is AccountStatus.Active or AccountStatus.Dormant or AccountStatus.Frozen or AccountStatus.Inoperative or AccountStatus.Matured;
+}
+<div class="page-title"><h3>@Model.AccountNo <small class="text-muted">@Model.Title</small> @Html.Raw(FormHelpers.Badge(Model.Status))</h3>
+ <div><a class="btn btn-outline-primary" asp-action="Statement" asp-route-id="@Model.Id">Statement</a> <a class="btn btn-light" asp-action="Index">List</a></div></div>
+@if (pend.Count > 0) { <div class="alert alert-warning">Pending vouchers on this account: @foreach (var v in pend) { <a asp-controller="Transactions" asp-action="Details" asp-route-id="@v.Id">@v.VoucherNo</a> <span>&nbsp;</span> }</div> }
+<div class="row g-3"><div class="col-lg-7">
+ <div class="panel"><div class="row"><dl class="col-md-6 kv"><dt>Customer</dt><dd><a asp-controller="Customers" asp-action="Details" asp-route-id="@Model.CustomerId">@Model.Customer?.Name</a> (@Model.Customer?.CifNo)</dd>
+  <dt>Product</dt><dd>@Model.Product?.Name</dd><dt>Branch</dt><dd>@Model.Branch?.Code - @Model.Branch?.Name</dd><dt>Opened</dt><dd>@Model.OpenedOn.ToString("dd-MMM-yyyy")</dd><dt>Mode of operation</dt><dd>@Model.Mode</dd>
+  @if (Model.Holders.Any()) { <dt>Joint holders</dt><dd>@string.Join(", ", Model.Holders.Select(h => h.Customer?.Name))</dd> }
+  @if (!string.IsNullOrEmpty(Model.PowerOfAttorney)) { <dt>Power of attorney</dt><dd>@Model.PowerOfAttorney</dd> }</dl>
+  <dl class="col-md-6 kv"><dt>Ledger balance</dt><dd class="fs-4 fw-bold">@Model.Balance.ToString("N2")</dd><dt>Lien / available</dt><dd>@Model.LienAmount.ToString("N2") / @Model.Available.ToString("N2")</dd>
+  @if (Model.Product.IsInterestBearing) { <dt>Interest rate / accrued</dt><dd>@(isTerm ? Model.InterestRate : Model.Product.InterestRate)% / @Model.AccruedInterest.ToString("N2")</dd> }
+  @if (isTerm) { <dt>Term / maturity</dt><dd>@Model.TermMonths months · @Model.MaturityDate?.ToString("dd-MMM-yyyy")</dd> }
+  @if (cat == ProductCategory.DPS) { <dt>DPS installments</dt><dd>@Model.InstallmentsPaid / @Model.TermMonths × @Model.InstallmentAmount.ToString("N2")</dd> }
+  @if (Model.OdLimit > 0) { <dt>Overdraft limit</dt><dd>@Model.OdLimit.ToString("N2")</dd> }
+  <dt>Limits (single/day/month)</dt><dd>@Model.SingleDebitLimit.ToString("N0") / @Model.DailyDebitLimit.ToString("N0") / @Model.MonthlyDebitLimit.ToString("N0")</dd>
+  <dt>Last customer txn</dt><dd>@Model.LastTxnDate?.ToString("dd-MMM-yyyy")</dd></dl></div>
+  @if (Model.Nominees.Any()) { <hr /><b>Nominees:</b> @string.Join("; ", Model.Nominees.Select(n => $"{n.Name} ({n.Relation}) {n.SharePercent}%")) }</div>
+ <div class="panel"><h5>Recent transactions</h5><table class="table table-sm"><thead><tr><th>Date</th><th>Voucher</th><th>Narration</th><th class="num">Debit</th><th class="num">Credit</th><th class="num">Balance</th></tr></thead><tbody>
+ @foreach (var t in txns) { <tr><td>@t.TxnDate.ToString("dd-MMM-yy")</td><td><a asp-controller="Transactions" asp-action="Details" asp-route-id="@t.VoucherId">@t.Voucher?.VoucherNo</a></td><td>@t.Narration</td><td class="num">@(t.Debit == 0 ? "" : t.Debit.ToString("N2"))</td><td class="num">@(t.Credit == 0 ? "" : t.Credit.ToString("N2"))</td><td class="num">@t.RunningBalance.ToString("N2")</td></tr> }
+ </tbody></table></div>
+ @if (!isTerm) {
+ <div class="panel"><h5>Cheque books</h5>@foreach (var b in books) { <div>#@b.FromNo – @b.ToNo · issued @b.IssuedOn.ToString("dd-MMM-yyyy") by @b.IssuedBy</div> }
+  @if (ops && Model.Status == AccountStatus.Active) { <form method="post" asp-action="IssueCheque" asp-route-id="@Model.Id" class="row g-2 mt-1"><div class="col-auto"><select name="leaves" class="form-select form-select-sm"><option>10</option><option selected>25</option><option>50</option><option>100</option></select></div><div class="col-auto"><button class="btn btn-sm btn-outline-primary">Issue cheque book</button></div></form> }
+  <h6 class="mt-3">Stopped cheques</h6><table class="table table-sm"><tbody>@foreach (var s in stops) { <tr><td>@s.ChequeNo</td><td class="num">@s.Amount.ToString("N2")</td><td>@s.Reason</td><td>@s.InstructionTime.ToString("dd-MMM-yy HH:mm")</td><td>@(s.IsActive ? "ACTIVE" : "released")</td><td>@if (s.IsActive && ops) {<form method="post" asp-action="ReleaseStop" asp-route-id="@Model.Id"><input type="hidden" name="stopId" value="@s.Id" /><button class="btn btn-sm btn-link p-0">Release</button></form>}</td></tr> }</tbody></table>
+  @if (ops && Model.Status == AccountStatus.Active) { <form method="post" asp-action="StopPay" asp-route-id="@Model.Id" class="row g-2"><div class="col-md-3"><input name="chequeNo" class="form-control form-control-sm" placeholder="Cheque no" required /></div><div class="col-md-2"><input name="amount" type="number" step="0.01" class="form-control form-control-sm" placeholder="Amount" /></div><div class="col-md-4"><input name="reason" class="form-control form-control-sm" placeholder="Reason (letter ref)" required /></div><div class="col-md-3"><button class="btn btn-sm btn-outline-danger">Stop payment</button></div></form> }
+  <h6 class="mt-3">Cheque return register</h6><table class="table table-sm"><tbody>@foreach (var r in rets) { <tr><td>@r.ChequeNo</td><td class="num">@r.Amount.ToString("N2")</td><td>@r.Reason</td><td>@r.ReturnDate.ToString("dd-MMM-yy")</td><td class="num">charge @r.ChargeApplied.ToString("N2")</td></tr> }</tbody></table>
+  @if (ops && live) { <form method="post" asp-action="ReturnCheque" asp-route-id="@Model.Id" class="row g-2"><div class="col-md-2"><input name="chequeNo" class="form-control form-control-sm" placeholder="Cheque no" required /></div><div class="col-md-2"><input name="amount" type="number" step="0.01" class="form-control form-control-sm" placeholder="Amount" required /></div><div class="col-md-4"><input name="reason" class="form-control form-control-sm" placeholder="Reason (e.g. insufficient funds)" required /></div><div class="col-md-2"><label class="small"><input type="checkbox" name="charge" value="true" /> charge fee</label></div><div class="col-md-2"><button class="btn btn-sm btn-outline-secondary">Record return</button></div></form> }
+ </div> }
+ @if (sis.Count > 0) { <div class="panel"><h5>Standing instructions</h5>@foreach (var s in sis) { <div>→ @s.ToAccount?.AccountNo · @s.Amount.ToString("N2") @s.Frequency · next @s.NextRunDate.ToString("dd-MMM-yy") · @s.Status</div> }</div> }
+</div>
+<div class="col-lg-5">
+ @if (Model.Status == AccountStatus.PendingApproval && checker) { <div class="panel"><h5>Approval</h5><form method="post" asp-action="Approve" asp-route-id="@Model.Id"><button class="btn btn-success">Approve zero-balance account</button></form><p class="small text-muted mt-2 mb-0">Accounts opened with a deposit are activated when the opening voucher is authorized.</p></div> }
+ @if (isTerm && ops && Model.Status is AccountStatus.Active or AccountStatus.Matured)
+ {
+  <div class="panel"><h5>@cat operations</h5>
+  @if (cat == ProductCategory.DPS && Model.InstallmentsPaid < Model.TermMonths) { <form method="post" asp-action="PayDps" asp-route-id="@Model.Id" class="mb-2"><div class="input-group input-group-sm"><input name="sourceAccountNo" class="form-control" placeholder="Debit account no (blank = cash)" /><button class="btn btn-primary">Pay installment @(Model.InstallmentsPaid + 1)</button></div></form> }
+  <form method="post" asp-action="Encash" asp-route-id="@Model.Id" onsubmit="return confirm('Create encashment voucher?')"><div class="form-check"><input class="form-check-input" type="checkbox" name="premature" value="true" id="prem" @(Model.MaturityDate <= DateTime.Today ? "" : "checked")><label class="form-check-label" for="prem">Premature encashment (penal rate @Model.Product.PrematureRate%)</label></div>
+  <div class="form-check"><input class="form-check-input" type="checkbox" name="toCash" value="true" id="cash"><label class="form-check-label" for="cash">Pay in cash (else to linked account)</label></div><button class="btn btn-warning mt-2">Encash</button></form></div>
+ }
+ @if (ops && live)
+ {
+  <div class="panel"><h5>Limits, lien &amp; attorney</h5><form method="post" asp-action="Limits" asp-route-id="@Model.Id" class="row g-2">
+   <div class="col-6"><label class="form-label">Overdraft limit</label><input name="odLimit" type="number" step="0.01" class="form-control form-control-sm" value="@Model.OdLimit" @(cat == ProductCategory.Current ? "" : "readonly")/></div>
+   <div class="col-6"><label class="form-label">Lien / hold</label><input name="lien" type="number" step="0.01" class="form-control form-control-sm" value="@Model.LienAmount" /></div>
+   <div class="col-4"><label class="form-label">Single</label><input name="single" type="number" step="0.01" class="form-control form-control-sm" value="@Model.SingleDebitLimit" /></div>
+   <div class="col-4"><label class="form-label">Daily</label><input name="daily" type="number" step="0.01" class="form-control form-control-sm" value="@Model.DailyDebitLimit" /></div>
+   <div class="col-4"><label class="form-label">Monthly</label><input name="monthly" type="number" step="0.01" class="form-control form-control-sm" value="@Model.MonthlyDebitLimit" /></div>
+   <div class="col-12"><label class="form-label">Power of attorney holder</label><input name="poa" class="form-control form-control-sm" value="@Model.PowerOfAttorney" /></div>
+   <div class="col-12"><button class="btn btn-sm btn-primary">Save</button></div></form></div>
+ }
+ @if (checker && Model.Status != AccountStatus.PendingApproval && Model.Status != AccountStatus.Closed)
+ {
+  <div class="panel"><h5>Account status</h5><form method="post" asp-action="SetStatus" asp-route-id="@Model.Id" class="row g-2">
+   <div class="col-5"><select name="status" class="form-select form-select-sm"><option value="Active">Active (re-activate)</option><option value="Frozen">Frozen (no debit)</option><option value="Blocked">Blocked</option><option value="Dormant">Dormant</option><option value="Closed">Closed (zero balance)</option></select></div>
+   <div class="col-5"><input name="reason" class="form-control form-control-sm" placeholder="Reason" required /></div><div class="col-2"><button class="btn btn-sm btn-warning">Set</button></div></form>
+   @if (!isTerm) { <form method="post" asp-action="CloseAccount" asp-route-id="@Model.Id" class="mt-3" onsubmit="return confirm('Create closing voucher and pay out the balance in cash?')"><button class="btn btn-sm btn-outline-danger">Close account &amp; pay out balance</button></form> }</div>
+ }
+ <div class="panel"><h5>Quick actions</h5><div class="d-grid gap-2">
+  <a class="btn btn-outline-primary btn-sm" asp-controller="Transactions" asp-action="Deposit" asp-route-no="@Model.AccountNo">Cash deposit</a>
+  <a class="btn btn-outline-primary btn-sm" asp-controller="Transactions" asp-action="Withdraw" asp-route-no="@Model.AccountNo">Cash withdrawal</a>
+  <a class="btn btn-outline-primary btn-sm" asp-controller="Transactions" asp-action="Transfer" asp-route-from="@Model.AccountNo">Fund transfer</a>
+  <a class="btn btn-outline-primary btn-sm" asp-controller="StandingInstructions" asp-action="Index" asp-route-from="@Model.AccountNo">Standing instruction</a></div></div>
+</div></div>

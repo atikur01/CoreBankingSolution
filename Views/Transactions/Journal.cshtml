@@ -1,0 +1,13 @@
+@model JournalVm
+@{ ViewData["Title"] = "GL journal voucher"; var br = (SelectList)ViewBag.Branches; }
+<div class="page-title"><h3>Manual GL journal voucher</h3></div>
+<form method="post" class="panel"><div asp-validation-summary="All" class="text-danger"></div>
+<div class="row g-3 mb-3"><div class="col-md-8"><label class="form-label">Description</label><input class="form-control" asp-for="Description" /></div><div class="col-md-4"><label class="form-label">Value date</label><input type="date" class="form-control" asp-for="ValueDate" /></div></div>
+<table class="table table-sm"><thead><tr><th style="width:14%">GL code</th><th style="width:22%">Branch (blank = mine)</th><th class="num">Debit</th><th class="num">Credit</th><th>Narration</th></tr></thead><tbody>
+@for (int i = 0; i < Model.Lines.Count; i++) { <tr><td><input class="form-control form-control-sm" name="Lines[@i].GlCode" value="@Model.Lines[i].GlCode" /></td>
+ <td><select class="form-select form-select-sm" name="Lines[@i].BranchId" asp-items="br"><option value="">--</option></select></td>
+ <td><input type="number" step="0.01" class="form-control form-control-sm" name="Lines[@i].Debit" value="@Model.Lines[i].Debit" /></td><td><input type="number" step="0.01" class="form-control form-control-sm" name="Lines[@i].Credit" value="@Model.Lines[i].Credit" /></td>
+ <td><input class="form-control form-control-sm" name="Lines[@i].Narration" value="@Model.Lines[i].Narration" /></td></tr> }
+</tbody></table>
+<p class="text-muted small">Self-balancing is enforced: total debit must equal total credit. Lines for different branches are balanced through the inter-branch GL automatically. Customer account GLs cannot be used directly - use deposit/transfer functions.</p>
+<button class="btn btn-primary">Create voucher</button></form>

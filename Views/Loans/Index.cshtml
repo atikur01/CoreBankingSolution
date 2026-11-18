@@ -1,0 +1,9 @@
+@model List<Loan>
+@{ ViewData["Title"] = "Loans"; }
+<div class="page-title"><h3>Loans &amp; advances</h3><a class="btn btn-primary" asp-action="Apply">+ New application</a></div>
+<div class="panel"><form class="row g-2 mb-3"><div class="col-md-4"><input name="q" value="@ViewBag.Q" class="form-control" placeholder="Loan no, borrower, CIF" /></div>
+<div class="col-md-3"><select name="status" class="form-select" asp-items="Html.GetEnumSelectList<LoanStatus>()"><option value="">Any status</option></select></div>
+<div class="col-md-3"><select name="cls" class="form-select" asp-items="Html.GetEnumSelectList<LoanClass>()"><option value="">Any classification</option></select></div><div class="col-md-2"><button class="btn btn-outline-primary">Search</button></div></form>
+<table class="table table-sm table-hover"><thead><tr><th>Loan no</th><th>Borrower</th><th>Product</th><th class="num">Principal</th><th class="num">Outstanding</th><th class="num">Rate</th><th>Overdue</th><th>Class</th><th>Status</th><th></th></tr></thead><tbody>
+@foreach (var l in Model) { <tr><td>@l.LoanNo</td><td>@l.Customer?.Name</td><td>@l.Product?.Name</td><td class="num">@l.Principal.ToString("N2")</td><td class="num">@l.OutstandingPrincipal.ToString("N2")</td><td class="num">@l.InterestRate</td><td>@(l.OverdueDays > 0 ? l.OverdueDays + "d" : "")</td><td>@Html.Raw(FormHelpers.Badge(l.Classification))</td><td>@Html.Raw(FormHelpers.Badge(l.Status))</td><td><a asp-action="Details" asp-route-id="@l.Id">Open</a></td></tr> }
+</tbody></table></div>

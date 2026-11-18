@@ -1,0 +1,8 @@
+@model List<Customer>
+@{ ViewData["Title"] = "Customers"; }
+<div class="page-title"><h3>Customers (CIF)</h3><a class="btn btn-primary" asp-action="Create">+ New customer</a></div>
+<div class="panel"><form class="row g-2 mb-3"><div class="col-md-5"><input name="q" value="@ViewBag.Q" class="form-control" placeholder="Search by name, CIF, NID or mobile" /></div>
+<div class="col-md-3"><select name="kyc" class="form-select" asp-items="Html.GetEnumSelectList<KycStatus>()"><option value="">All KYC states</option></select></div><div class="col-md-2"><button class="btn btn-outline-primary">Search</button></div></form>
+<table class="table table-sm table-hover"><thead><tr><th>CIF</th><th>Name</th><th>Type</th><th>NID</th><th>Mobile</th><th>Branch</th><th>KYC</th><th>Risk</th><th></th></tr></thead><tbody>
+@foreach (var c in Model) { <tr><td>@c.CifNo</td><td>@c.Name</td><td>@c.Type</td><td>@c.Nid</td><td>@c.Mobile</td><td>@c.Branch?.Code</td><td>@Html.Raw(FormHelpers.Badge(c.Kyc))</td><td>@c.Risk</td><td><a asp-action="Details" asp-route-id="@c.Id">Open</a></td></tr> }
+</tbody></table></div>

@@ -1,0 +1,6 @@
+@model List<Branch>
+@{ ViewData["Title"] = "Branches"; }
+<div class="page-title"><h3>Branches &amp; layers</h3><a class="btn btn-primary" asp-action="BranchEdit">+ New branch</a></div>
+<div class="panel"><table class="table table-sm table-hover"><thead><tr><th>Code</th><th>Name</th><th>Layer</th><th>Parent</th><th>Routing</th><th>Cost / Profit center</th><th>Business date</th><th>Status</th><th></th></tr></thead><tbody>
+@foreach (var b in Model) { <tr><td>@b.Code</td><td>@b.Name</td><td>@b.Layer</td><td>@b.Parent?.Name</td><td>@b.RoutingNumber</td><td>@b.CostCenter / @b.ProfitCenter</td><td>@b.BusinessDate.ToString("dd-MMM-yyyy")</td><td>@(b.IsActive ? "Open" : "Closed")</td><td><a asp-action="BranchEdit" asp-route-id="@b.Id">Edit</a></td></tr> }
+</tbody></table></div>

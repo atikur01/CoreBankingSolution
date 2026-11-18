@@ -1,0 +1,13 @@
+@model List<Voucher>
+@{ ViewData["Title"] = "Voucher register"; }
+<div class="page-title"><h3>Voucher register</h3></div>
+<div class="panel"><form class="row g-2 mb-3">
+ <div class="col-md-2"><input type="date" name="from" class="form-control" value="@(((DateTime)ViewBag.From).ToString("yyyy-MM-dd"))" /></div><div class="col-md-2"><input type="date" name="to" class="form-control" value="@(((DateTime)ViewBag.To).ToString("yyyy-MM-dd"))" /></div>
+ <div class="col-md-2"><select name="status" class="form-select" asp-items="Html.GetEnumSelectList<VoucherStatus>()"><option value="">Any status</option></select></div>
+ <div class="col-md-2"><select name="type" class="form-select" asp-items="Html.GetEnumSelectList<VoucherType>()"><option value="">Any type</option></select></div>
+ <div class="col-md-2"><select name="branchId" class="form-select" asp-items="(SelectList)ViewBag.Branches"><option value="">All branches</option></select></div>
+ <div class="col-md-2"><input name="q" value="@ViewBag.Q" class="form-control" placeholder="voucher/desc/user" /></div>
+ <div class="col-12"><button class="btn btn-outline-primary">Search</button> <button class="btn btn-outline-success" name="csv" value="true">Export CSV</button></div></form>
+<table class="table table-sm table-hover"><thead><tr><th>Voucher</th><th>Date</th><th>Br</th><th>Type</th><th>Description</th><th class="num">Amount</th><th>Status</th><th>Maker</th><th>Checker</th></tr></thead><tbody>
+@foreach (var v in Model) { <tr><td><a asp-action="Details" asp-route-id="@v.Id">@v.VoucherNo</a></td><td>@v.TxnDate.ToString("dd-MMM-yy")</td><td>@v.Branch?.Code</td><td>@v.Type</td><td>@v.Description</td><td class="num">@v.TotalAmount.ToString("N2")</td><td>@Html.Raw(FormHelpers.Badge(v.Status))</td><td>@v.MakerId</td><td>@v.CheckerId</td></tr> }
+</tbody></table></div>

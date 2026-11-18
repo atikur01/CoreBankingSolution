@@ -1,0 +1,14 @@
+@model PasswordVm
+@{ ViewData["Title"] = "Change password"; }
+<div class="panel" style="max-width:520px">
+    <h4>Change password</h4>
+    @if (ViewBag.Forced == true) { <div class="alert alert-warning">You must change your password (first login or password expired, policy: every 30 days) before continuing.</div> }
+    <div asp-validation-summary="All" class="text-danger"></div>
+    <form method="post">
+        <div class="mb-3"><label class="form-label" asp-for="Current">Current password</label><input class="form-control" asp-for="Current" autocomplete="current-password" /></div>
+        <div class="mb-3"><label class="form-label" asp-for="NewPassword">New password</label><input class="form-control" asp-for="NewPassword" autocomplete="new-password" />
+            <div class="form-text">Min. 8 characters with upper-case, lower-case, digit and symbol. The last 4 passwords cannot be re-used.</div></div>
+        <div class="mb-3"><label class="form-label" asp-for="Confirm">Confirm new password</label><input class="form-control" asp-for="Confirm" autocomplete="new-password" /></div>
+        <button class="btn btn-primary">Change password</button>
+    </form>
+</div>
