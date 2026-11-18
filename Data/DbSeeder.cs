@@ -70,6 +70,8 @@ public static class DbSeeder
                 await db.SaveChangesAsync();
             }
         }
+
+        await Demo.DemoDataSeeder.SeedAsync(sp);
     }
 
     private static async Task SeedChartOfAccounts(ApplicationDbContext db)

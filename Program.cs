@@ -109,7 +109,7 @@ app.UseAuthentication();
 app.UseMiddleware<PasswordPolicyMiddleware>();
 app.UseAuthorization();
 
-app.MapStaticAssets();
+app.MapStaticAssets().AllowAnonymous();
 app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}").WithStaticAssets();
 app.MapRazorPages().WithStaticAssets();
 

@@ -14,6 +14,11 @@ namespace CoreBankingSolution.Controllers
         public List<(string Name, decimal Amount)> DepositByProduct = [];
         public List<Branch> Branches = [];
         public List<Voucher> Recent = [];
+        public List<(DateTime Date, decimal Credit, decimal Debit)> Trend = [];
+        public List<(LoanClass Class, int Count, decimal Amount)> LoanMix = [];
+        public string UserName = "";
+        public string BranchName = "";
+        public DateTime BusinessDate;
     }
 
     public class HomeController : BankController
@@ -35,6 +40,9 @@ namespace CoreBankingSolution.Controllers
             vm.NplLoans = await Db.Loans.CountAsync(l => l.Status == LoanStatus.Disbursed && l.Classification >= LoanClass.SubStandard);
             vm.Provision = await Db.Loans.SumAsync(l => (decimal?)l.ProvisionHeld) ?? 0;
             var d = branch?.BusinessDate ?? DateTime.Today;
+            vm.UserName = p?.FullName ?? Me.UserName;
+            vm.BranchName = branch == null ? "-" : $"{branch.Code} - {branch.Name}";
+            vm.BusinessDate = d;
             vm.TodayTxns = await Db.Vouchers.CountAsync(v => v.TxnDate == d && v.Status == VoucherStatus.Authorized);
             vm.TodayDebit = await Db.AccountTransactions.Where(t => t.TxnDate == d).SumAsync(t => (decimal?)t.Debit) ?? 0;
             vm.TodayCredit = await Db.AccountTransactions.Where(t => t.TxnDate == d).SumAsync(t => (decimal?)t.Credit) ?? 0;
@@ -44,6 +52,14 @@ namespace CoreBankingSolution.Controllers
                 .GroupBy(a => a.Product!.Name).Select(g => new { g.Key, S = g.Sum(x => x.Balance) }).ToListAsync()).Select(x => (x.Key, x.S)).ToList();
             vm.Branches = await Db.Branches.AsNoTracking().OrderBy(b => b.Code).ToListAsync();
             vm.Recent = await Db.Vouchers.AsNoTracking().OrderByDescending(v => v.Id).Take(8).ToListAsync();
+            var since = d.AddDays(-13);
+            var daily = await Db.AccountTransactions.AsNoTracking().Where(t => t.TxnDate >= since && t.TxnDate <= d)
+                .GroupBy(t => t.TxnDate).Select(g => new { g.Key, Cr = g.Sum(x => x.Credit), Dr = g.Sum(x => x.Debit) }).ToListAsync();
+            vm.Trend = Enumerable.Range(0, 14).Select(i => since.AddDays(i))
+                .Select(day => (day, daily.FirstOrDefault(x => x.Key == day)?.Cr ?? 0, daily.FirstOrDefault(x => x.Key == day)?.Dr ?? 0)).ToList();
+            var mix = await Db.Loans.AsNoTracking().Where(l => l.Status == LoanStatus.Disbursed)
+                .GroupBy(l => l.Classification).Select(g => new { g.Key, N = g.Count(), A = g.Sum(x => x.OutstandingPrincipal) }).ToListAsync();
+            vm.LoanMix = Enum.GetValues<LoanClass>().Select(c => (c, mix.FirstOrDefault(x => x.Key == c)?.N ?? 0, mix.FirstOrDefault(x => x.Key == c)?.A ?? 0)).ToList();
             return View(vm);
         }
 
