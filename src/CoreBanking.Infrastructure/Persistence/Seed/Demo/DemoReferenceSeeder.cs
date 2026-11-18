@@ -1,8 +1,7 @@
-using CoreBankingSolution.Models.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace CoreBankingSolution.Data.Demo;
+namespace CoreBanking.Infrastructure.Persistence.Seed.Demo;
 
 internal static class DemoReferenceSeeder
 {

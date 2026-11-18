@@ -1,23 +1,21 @@
-using CoreBankingSolution.Data;
-using CoreBankingSolution.Services;
+using CoreBanking.Application;
+using CoreBanking.Infrastructure;
+using CoreBanking.Infrastructure.Persistence;
+using CoreBanking.Infrastructure.Persistence.Seed;
+using CoreBanking.Web.Middleware;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authentication;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
+builder.Services.AddApplication();
+builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddDefaultIdentity<IdentityUser>(options =>
     {
         options.SignIn.RequireConfirmedAccount = false;
-        // Password policy (BB CBS guideline 10.1.3) - history & expiry are enforced by PasswordPolicyMiddleware.
         options.Password.RequiredLength = 8;
         options.Password.RequireDigit = true;
         options.Password.RequireLowercase = true;
@@ -38,38 +36,19 @@ builder.Services.AddAuthorization(o =>
 });
 builder.Services.ConfigureApplicationCookie(o =>
 {
-    o.ExpireTimeSpan = TimeSpan.FromMinutes(30);   // idle session timeout
+    o.ExpireTimeSpan = TimeSpan.FromMinutes(30);
     o.SlidingExpiration = true;
     o.Cookie.HttpOnly = true;
 });
 
-builder.Services.AddScoped<ParamService>();
-builder.Services.AddScoped<NumberService>();
-builder.Services.AddScoped<SanctionService>();
-builder.Services.AddScoped<RateService>();
-builder.Services.AddScoped<LedgerService>();
-builder.Services.AddScoped<DepositService>();
-builder.Services.AddScoped<TransactionService>();
-builder.Services.AddScoped<LoanService>();
-builder.Services.AddScoped<RemittanceService>();
-builder.Services.AddScoped<ClearingService>();
-builder.Services.AddScoped<EodService>();
-builder.Services.AddScoped<IVoucherHook, DepositHook>();
-builder.Services.AddScoped<IVoucherHook, LoanHook>();
-builder.Services.AddScoped<IVoucherHook, RemittanceHook>();
-builder.Services.AddScoped<IVoucherHook, ClearingHook>();
-builder.Services.AddScoped<UserContext>();
-
 var app = builder.Build();
 
-// Create / update the database schema and reference data.
 using (var scope = app.Services.CreateScope())
 {
     var log = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
     try
     {
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        // Database:Mode = Migrate (default, applies EF migrations) | EnsureCreated (dev/test only) | None
         var mode = app.Configuration.GetValue("Database:Mode", "Migrate");
         if (mode == "Migrate") await db.Database.MigrateAsync();
         else if (mode == "EnsureCreated") await db.Database.EnsureCreatedAsync();
@@ -94,7 +73,6 @@ else
 
 app.UseHttpsRedirection();
 
-// Users are created by administrators only - public self-registration is disabled.
 app.Use(async (ctx, next) =>
 {
     var path = ctx.Request.Path.Value ?? "";

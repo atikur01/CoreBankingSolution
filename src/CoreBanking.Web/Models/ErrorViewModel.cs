@@ -1,4 +1,4 @@
-namespace CoreBankingSolution.Models
+namespace CoreBanking.Web.Models
 {
     public class ErrorViewModel
     {

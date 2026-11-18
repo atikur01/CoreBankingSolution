@@ -3,16 +3,47 @@
 ASP.NET Core 9 MVC + Entity Framework Core + SQL Server + ASP.NET Identity.
 Built against the Bangladesh Bank guideline **"Guidelines on Core Banking Solution (CBS) Features and Controls", Version 2.0 (BRPD Circular No. 12, 13 May 2024)** – see `bb bank software.pdf`.
 
+## Architecture
+
+Clean Architecture, feature-first inside every layer. Dependencies point inwards only.
+
+```
+src/
+  CoreBanking.Domain           entities, enums, BankingException, Money, Roles          (no dependencies)
+  CoreBanking.Application      use cases per feature, abstractions (IApplicationDbContext,
+                               ICurrentUser, INumberSequence, IFileStore, IUserAdministration)
+  CoreBanking.Infrastructure   EF Core DbContext + migrations + seeding, Identity-backed
+                               user administration, SQL number sequences, file store
+  CoreBanking.Web              MVC controllers (Features/<Feature>), views, middleware, composition root
+tests/
+  CoreBanking.Tests            unit, service-integration (real SQL Server LocalDB) and web tests
+```
+
+* `Web` never touches EF directly - controllers call Application services (`AccountQueries`, `CustomerService`, `SetupService`, `ReportService`, ...). `Program.cs` is the only place that wires `Infrastructure`.
+* Every feature owns its folder in each layer: Accounts, Customers, Ledger, Deposits, Transactions, Remittances, Clearing, Loans, StandingInstructions, Eod, Reports, Setup, Sanctions, Users, Dashboard, Parameters, Numbering, Lookups.
+
 ## Run
 
 ```bash
-dotnet run
+dotnet run --project src/CoreBanking.Web
 ```
 
-* The connection string is read from `appsettings.json` → `ConnectionStrings:DefaultConnection`.
-* On start-up the app applies the EF migrations (`Database:Mode` = `Migrate`) and seeds reference data: currencies, branches (001 Head Office, 002 Motijheel), chart of accounts, products, bank parameters, excise slabs and the roles.
-* First login: **`admin@corebank.local` / `Admin@12345`** – you are forced to change the password immediately.
-* Public registration is disabled; administrators create users under *Administration → Users* (a one-time temporary password is shown).
+* The connection string is read from `src/CoreBanking.Web/appsettings.json` -> `ConnectionStrings:DefaultConnection` (use `dotnet user-secrets` or an environment variable for real credentials).
+* On start-up the app applies the EF migrations (`Database:Mode` = `Migrate`) and seeds reference data: currencies, branches (001 Head Office, 002 Motijheel), chart of accounts, products, bank parameters, excise slabs and the roles. Set `Seed:DemoData=false` to skip the demo data.
+* First login: **`admin@corebank.local` / `Admin@12345`** - you are forced to change the password immediately.
+* Public registration is disabled; administrators create users under *Administration -> Users* (a one-time temporary password is shown).
+
+## Tests
+
+```bash
+dotnet test
+```
+
+The suite needs SQL Server **LocalDB** (`(localdb)\MSSQLLocalDB`). Every run creates its own throw-away databases, applies the real migrations, and drops them afterwards - it never touches the configured application database.
+
+* `Unit/` - money rounding, check digits, loan schedule & classification, allocation, parameter rules, access policy.
+* `Services/` - ledger, deposits, remittances, clearing, loans, EOD/year-end, numbering, sanctions, rates, audit, reports, setup (real database, one fresh branch per test, books are re-verified for consistency).
+* `Web/` - every page renders with demo data, role/permission matrix, anti-forgery, forced password change, and end-to-end maker -> checker flows.
 
 ## Module map (guideline section → implementation)
 

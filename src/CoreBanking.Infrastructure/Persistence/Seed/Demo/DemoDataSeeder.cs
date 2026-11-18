@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace CoreBankingSolution.Data.Demo;
+namespace CoreBanking.Infrastructure.Persistence.Seed.Demo;
 
 public static class DemoDataSeeder
 {

@@ -1,9 +1,7 @@
-using CoreBankingSolution.Models.Entities;
-using CoreBankingSolution.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace CoreBankingSolution.Data;
+namespace CoreBanking.Infrastructure.Persistence.Seed;
 
 public static class DbSeeder
 {

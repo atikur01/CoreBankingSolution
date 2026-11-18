@@ -16,7 +16,7 @@ PublishScripts/
 *.rsuser
 *.DotSettings.user
 launchSettings.json.user
-Properties/serviceDependencies.local.json
+**/Properties/serviceDependencies.local.json
 Properties/serviceDependencies.local.json.user
 
 appsettings.Development.json

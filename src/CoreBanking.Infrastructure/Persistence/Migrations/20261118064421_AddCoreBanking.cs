@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace CoreBankingSolution.Data.Migrations
+namespace CoreBanking.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
     public partial class AddCoreBanking : Migration

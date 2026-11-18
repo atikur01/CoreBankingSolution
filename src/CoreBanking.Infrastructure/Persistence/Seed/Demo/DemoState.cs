@@ -1,8 +1,6 @@
-using CoreBankingSolution.Models.Entities;
-using CoreBankingSolution.Services;
 using Microsoft.EntityFrameworkCore;
 
-namespace CoreBankingSolution.Data.Demo;
+namespace CoreBanking.Infrastructure.Persistence.Seed.Demo;
 
 internal sealed record Ln(int? Gl, Account? Acc, decimal Dr, decimal Cr, string? Narr = null, Loan? Loan = null, string? Comp = null);
 

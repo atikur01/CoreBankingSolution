@@ -1,0 +1,11 @@
+global using CoreBanking.Domain.Common;
+global using CoreBanking.Domain.Features.Accounts;
+global using CoreBanking.Domain.Features.Administration;
+global using CoreBanking.Domain.Features.Clearing;
+global using CoreBanking.Domain.Features.Customers;
+global using CoreBanking.Domain.Features.Ledger;
+global using CoreBanking.Domain.Features.Loans;
+global using CoreBanking.Domain.Features.Remittances;
+global using CoreBanking.Domain.Features.Sanctions;
+global using CoreBanking.Domain.Features.Setup;
+global using CoreBanking.Domain.Features.StandingInstructions;

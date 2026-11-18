@@ -1,6 +1,5 @@
-using CoreBankingSolution.Models.Entities;
 
-namespace CoreBankingSolution.Data.Demo;
+namespace CoreBanking.Infrastructure.Persistence.Seed.Demo;
 
 internal static class DemoCustomerSeeder
 {

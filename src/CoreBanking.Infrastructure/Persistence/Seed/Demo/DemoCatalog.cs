@@ -1,10 +1,10 @@
-namespace CoreBankingSolution.Data.Demo;
+namespace CoreBanking.Infrastructure.Persistence.Seed.Demo;
 
 internal static class DemoCatalog
 {
     public record Person(string Name, string Father, string Mother, string Gender, string Profession, decimal Income);
 
-    public record Corporate(string Name, Models.Entities.CustomerType Type, string Contact, string Sector, string License);
+    public record Corporate(string Name, CustomerType Type, string Contact, string Sector, string License);
 
     public record DemoUser(string Email, string FullName, string Role, string BranchCode, string Designation, string EmployeeId, decimal MaxCredit, decimal MaxDebit);
 
@@ -42,10 +42,10 @@ internal static class DemoCatalog
 
     public static readonly Corporate[] Corporates =
     [
-        new("Padma Textiles Ltd.", Models.Entities.CustomerType.PrivateLtd, "Mr. Anisur Rahman", "Textile Manufacturing", "TRAD/DSCC/045678/2022"),
-        new("Meghna Agro Traders", Models.Entities.CustomerType.Proprietary, "Md. Fazlul Karim", "Agro Trading", "TRAD/DNCC/118203/2023"),
-        new("Shonar Bangla Foundation", Models.Entities.CustomerType.NonProfitOrganization, "Ms. Rehana Chowdhury", "Education & Welfare", "NGOAB/2019/3321"),
-        new("Bengal Pharma PLC", Models.Entities.CustomerType.PublicLtd, "Dr. Selim Reza", "Pharmaceuticals", "C-93017/2012"),
+        new("Padma Textiles Ltd.", CustomerType.PrivateLtd, "Mr. Anisur Rahman", "Textile Manufacturing", "TRAD/DSCC/045678/2022"),
+        new("Meghna Agro Traders", CustomerType.Proprietary, "Md. Fazlul Karim", "Agro Trading", "TRAD/DNCC/118203/2023"),
+        new("Shonar Bangla Foundation", CustomerType.NonProfitOrganization, "Ms. Rehana Chowdhury", "Education & Welfare", "NGOAB/2019/3321"),
+        new("Bengal Pharma PLC", CustomerType.PublicLtd, "Dr. Selim Reza", "Pharmaceuticals", "C-93017/2012"),
     ];
 
     public static readonly DemoUser[] Users =
@@ -86,14 +86,14 @@ internal static class DemoCatalog
         "Mst. Rabeya Begum", "Greenland Suppliers", "Habib Ullah Khan", "Tasnim Fabrics", "Kazi Mohammad Shahin"
     ];
 
-    public static readonly (string Name, string Aliases, string Id, string Notes, Models.Entities.SanctionSource Source)[] Sanctions =
+    public static readonly (string Name, string Aliases, string Id, string Notes, SanctionSource Source)[] Sanctions =
     [
-        ("Zulqarnain Abdul Qadir Siddiqui", "Z. A. Siddiqui; Abu Zulqarnain", "UN-QDi.901", "UNSCR 1267 - fictitious demo entry", Models.Entities.SanctionSource.UNSCR),
-        ("Hamdan Yusuf Al-Mansoori", "Hamdan Al Mansouri", "UN-QDi.902", "UNSCR 1267 - fictitious demo entry", Models.Entities.SanctionSource.UNSCR),
-        ("Tariq Mehboob Qureshi", "Tariq M. Qureshi", "UN-TAi.303", "UNSCR 1988 - fictitious demo entry", Models.Entities.SanctionSource.UNSCR),
-        ("Vladlen Orsky Petrovich", "", "UN-RUi.404", "UNSCR 1718 - fictitious demo entry", Models.Entities.SanctionSource.UNSCR),
-        ("Nurul Amin Shikder Mintu", "Mintu Shikder", "BD-LOC-0011", "Local list - fictitious demo entry", Models.Entities.SanctionSource.Local),
-        ("Salauddin Kabir Nayan", "", "BD-LOC-0012", "Local list - fictitious demo entry", Models.Entities.SanctionSource.Local),
-        ("Abu Hanif Jabbar Mollah", "Hanif Mollah", "BD-LOC-0013", "Local list - fictitious demo entry", Models.Entities.SanctionSource.Local),
+        ("Zulqarnain Abdul Qadir Siddiqui", "Z. A. Siddiqui; Abu Zulqarnain", "UN-QDi.901", "UNSCR 1267 - fictitious demo entry", SanctionSource.UNSCR),
+        ("Hamdan Yusuf Al-Mansoori", "Hamdan Al Mansouri", "UN-QDi.902", "UNSCR 1267 - fictitious demo entry", SanctionSource.UNSCR),
+        ("Tariq Mehboob Qureshi", "Tariq M. Qureshi", "UN-TAi.303", "UNSCR 1988 - fictitious demo entry", SanctionSource.UNSCR),
+        ("Vladlen Orsky Petrovich", "", "UN-RUi.404", "UNSCR 1718 - fictitious demo entry", SanctionSource.UNSCR),
+        ("Nurul Amin Shikder Mintu", "Mintu Shikder", "BD-LOC-0011", "Local list - fictitious demo entry", SanctionSource.Local),
+        ("Salauddin Kabir Nayan", "", "BD-LOC-0012", "Local list - fictitious demo entry", SanctionSource.Local),
+        ("Abu Hanif Jabbar Mollah", "Hanif Mollah", "BD-LOC-0013", "Local list - fictitious demo entry", SanctionSource.Local),
     ];
 }

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 
-namespace CoreBankingSolution.Helpers;
+namespace CoreBanking.Web.Helpers;
 
 public static class FormHelpers
 {

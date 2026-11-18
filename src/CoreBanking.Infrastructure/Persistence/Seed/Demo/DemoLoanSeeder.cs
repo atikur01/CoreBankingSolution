@@ -1,7 +1,5 @@
-using CoreBankingSolution.Models.Entities;
-using CoreBankingSolution.Services;
 
-namespace CoreBankingSolution.Data.Demo;
+namespace CoreBanking.Infrastructure.Persistence.Seed.Demo;
 
 internal sealed class DemoLoanSeeder(DemoState s)
 {

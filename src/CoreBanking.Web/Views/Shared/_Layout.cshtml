@@ -1,4 +1,4 @@
-@inject UserContext Me
+@inject ICurrentUser Me
 @inject Microsoft.AspNetCore.Identity.SignInManager<Microsoft.AspNetCore.Identity.IdentityUser> SignIn
 @{
     var signedIn = SignIn.IsSignedIn(User);

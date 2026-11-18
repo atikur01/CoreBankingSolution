@@ -1,12 +1,13 @@
+using System.Text.Encodings.Web;
 using System.Text.Json;
-using CoreBankingSolution.Models.Entities;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace CoreBankingSolution.Data
+namespace CoreBanking.Infrastructure.Persistence
 {
-    public class ApplicationDbContext : IdentityDbContext
+    public class ApplicationDbContext : IdentityDbContext, IApplicationDbContext
     {
         private readonly IHttpContextAccessor? _http;
         private bool _auditing;
@@ -16,6 +17,10 @@ namespace CoreBankingSolution.Data
         {
             _http = http;
         }
+
+        private static readonly JsonSerializerOptions AuditJson = new() { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+
+        private static bool IsDomainEntity(Type type) => type.Assembly == typeof(Branch).Assembly;
 
         public DbSet<Branch> Branches => Set<Branch>();
         public DbSet<Currency> Currencies => Set<Currency>();
@@ -54,7 +59,7 @@ namespace CoreBankingSolution.Data
 
             // Banking data must never be cascade-deleted.
             foreach (var fk in b.Model.GetEntityTypes()
-                         .Where(e => e.ClrType.Namespace == typeof(Branch).Namespace)
+                         .Where(e => IsDomainEntity(e.ClrType))
                          .SelectMany(e => e.GetForeignKeys()))
                 fk.DeleteBehavior = DeleteBehavior.Restrict;
 
@@ -98,7 +103,7 @@ namespace CoreBankingSolution.Data
             var pending = ChangeTracker.Entries()
                 .Where(e => e.State is EntityState.Added or EntityState.Modified or EntityState.Deleted
                             && e.Entity is not AuditLog && e.Entity is not NumberSequence && e.Entity is not PasswordHistory
-                            && e.Metadata.ClrType.Namespace == typeof(Branch).Namespace)
+                            && IsDomainEntity(e.Metadata.ClrType))
                 .Select(e => new
                 {
                     Entry = e,
@@ -123,7 +128,7 @@ namespace CoreBankingSolution.Data
                 {
                     var key = p.Entry.Metadata.FindPrimaryKey()?.Properties
                         .Select(k => p.Entry.Property(k.Name).CurrentValue?.ToString()).FirstOrDefault();
-                    var details = p.Changes.Count == 0 ? null : JsonSerializer.Serialize(p.Changes);
+                    var details = p.Changes.Count == 0 ? null : JsonSerializer.Serialize(p.Changes, AuditJson);
                     if (details != null && details.Length > 3900) details = details[..3900] + "…";
                     AuditLogs.Add(new AuditLog
                     {
